@@ -1,15 +1,5 @@
-" Time to define our own syntax.
-" This will be full of rookie mistakes.
-"
 " This syntax is for the ledger format documented at
 " https://www.ledger-cli.org/3.0/doc/ledger3.html#Example-Journal-File
-
-" Convenient way to reload the syntax.
-" TODO: Clear out old things better?
-nnoremap <F13>  :source ./mysyntax.vim<CR>
-
-" Convenient way to see how the text under the cursor has been parsed.
-nnoremap <F15>  :echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')<CR>
 
 """ Begin.
 
