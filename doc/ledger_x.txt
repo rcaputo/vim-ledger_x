@@ -1,0 +1,83 @@
+*ledger_x.txt	eXtensions to the official Plugin for the ledger filetype.
+
+  Reconciling...|ledger_x-reconciling| 
+  Syntax........|ledger_x-syntaax| 
+  Installing....|ledger_x-installing| 
+  Contributing..|ledger_x-contributing| 
+  License.......|ledger_x-license| 
+
+==============================================================================
+                                                          *ledger_x-reconciling*
+Reconciling~
+
+Ledger_X implements an interactive reconciliation function.  Type <leader>lr
+in an unmodified ledger window.  At the prompt, enter a partial or full
+account name to reconcile.  A location list window will appear containing
+uncleared postings for that account.
+
+Three keys have special meaning in the reconciliation location list:
+
+Space will toggle the "pending" state of the posting under the cursor.
+Uncleared postings will be marked "->", and cleared ones will be marked "*>".
+
+Greater-than (">") will commit "pending" actions.  Postings marked "->" will
+be converted to "*".  Postings with "*>" will have all status flags removed.
+
+Each group of postings committed with ">" will be assigned a distinct
+reconciliation ID.  This can be used for auditing and to verify that old
+transactions have not been accidentally modified.
+
+==============================================================================
+                                                               *ledger_x-syntax*
+Syntax~
+
+Ledger_X includes an experimental syntax highlighting that attempts to parse
+the ledger file format more completely.
+
+It can be enabled by entering this command from a ledger window
+
+  :set filetype=ledger_x
+
+==============================================================================
+                                                           *ledger_x-installing*
+Installing~
+
+Be sure to install Vim-Ledger first.  Ledger_X will not work without
+Vim-Ledger installed.  Vim-Ledger is at https://github.com/ledger/vim-ledger
+
+Ledger_X provides a number of files in subdirectories.  Place them into
+corresponding directories in your vim 'runtimepath'.  Pathogen, Vundle, etc.
+may make this easier to manage.
+
+==============================================================================
+                                                  *showhidefoldsby-contributing*
+Contributing~
+
+Please use github as the point of contact for support and collaboration:
+https://github.com/rcaputo/vim-ledger_x
+
+Improvements to the existing code will be considered on the basis of
+correctness, efficiency, and clarity.  Mostly in that order, unless something
+is really unclear.
+
+All contributions must be made under the same license as this plugin.
+If no license is specified, it will be assumed to be the same as this plugin.
+Proper attribution will be given to the contributor, if possible.
+
+==============================================================================
+                                                              *ledger_x-license*
+License~
+
+Ledger-X is Copyright 2017-2018 by Rocco Caputo.
+
+Ledger-X is currently provided under:
+Attribution-NonCommercial-ShareAlike 4.0 International
+(CC BY-NC-SA 4.0).
+
+A summary may be found at:
+https://creativecommons.org/licenses/by-nc-sa/4.0/
+
+The full license may be found at:
+https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode
+
+vim:tw=78:ft=help:norl:expandtab:
