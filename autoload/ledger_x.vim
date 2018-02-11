@@ -14,7 +14,7 @@ let g:ledger_align_at = 65
 
 function! s:shellescape(...)
 	return join( map( copy(a:000), 'shellescape(v:val)' ) )
-endf
+endfunction
 
 function! ledger_x#fake_make(error_format, command_list)
 	let l:stdout = systemlist( call('s:shellescape', a:command_list) )
@@ -32,7 +32,7 @@ function! ledger_x#fake_make(error_format, command_list)
 	" TODO: Are there use cases where this isn't wanted?
 
 	:lopen
-endf
+endfunction
 
 " Temporarily redefine the "make" program and its error format, and
 " then run a make-like program, sending its output into a location
@@ -61,7 +61,7 @@ function! ledger_x#temporary_make(error_format, ...)
 	" TODO: Are there use cases where this isn't wanted?
 
 	:lopen
-endf
+endfunction
 
 
 " Run a reconcile report on the current file, and enter reconciliation
@@ -85,7 +85,7 @@ function! ledger_x#reconcile()
 			\ '--uncleared',
 			\ "--format=%(pending ? \"+\" : \"-\") " . g:ledger_qf_reconcile_format,
 			\ "--prepend-format=%(filename):%(beg_line): ",
-			\ "--sort='date,amount,payee'",
+			\ "--sort=date,amount,payee",
 			\ l:account
 			\ ]
 
@@ -109,22 +109,13 @@ function! ledger_x#reconcile()
 	nnoremap <buffer> > :call ledger_x#commit_qf_pending()<CR>
 
 	redraw
-endf
+endfunction
 
 
 """ Use the location list as a UI for reconciling postings.
 
-" Turn on the cursor line to highlight the ledger posting that
-" corresponds to the current location list entry.  Otherwise there's
-" no indication of which line in the ledger is "current".
-"
-" TODO: Only set it locally for the ledger and the location list
-" windows while a reconciliation is active.  The hard part, I think,
-" is turning it back off.  Maybe there'll be a keystroke to end the
-" reconciliation, turn off cursorline, and close the location list.
-
-set cursorline
-"hi CursorLine ctermbg=darkgray ctermfg=cyan cterm=bold guibg=darkgray guifg=cyan gui=bold
+" This used to turn on cursorline, but cursorline + match = slow.
+" Leave the use of cursorline up to the user.
 
 " Make <space> in a quickfix buffer toggle a posting's reconciliation
 " state.  Note that vim conflates quickfix and location list buffer
@@ -169,7 +160,7 @@ function! ledger_x#toggle_qf_pending()
 	" rounding errors.
 
 	let l:line_amount_list = matchlist(l:loc_text, '\([-+]\?\) *\([0-9]*\)[.,]\([0-9][0-9]*\)\>')
-	let l:line_amount_int = join(l:line_amount_list[1:], '')
+	let l:line_amount_int = eval(join(l:line_amount_list[1:], ''))
 	if ! strlen(l:line_amount_list[0])
 		echo "Current line doesn't have a recognizable amount: " . l:loc_text
 		return
@@ -196,22 +187,22 @@ function! ledger_x#toggle_qf_pending()
 	let l:left_two = strpart(l:loc_text, 0, 2)
 	if l:left_two == '- '
 		let l:loc_text = '->' . strpart(l:loc_text, 2)
-		if ! ledger_x#_set_posting_pending( eval(l:line_amount_int), '^\s\s*[A-Z]', '^\s\s*', ' -> ' )
+		if ! ledger_x#_set_posting_pending( l:line_amount_int, '^\s\s*[A-Z]', '^\s\s*', ' -> ' )
 			return
 		endif
 	elseif l:left_two == '* '
 		let l:loc_text = '*>' . strpart(l:loc_text, 2)
-		if ! ledger_x#_set_posting_pending( -eval(l:line_amount_int), '^\s\s*[*]\s*[A-Z]', '^\s\s*[*]\s*', ' *> ' )
+		if ! ledger_x#_set_posting_pending( -l:line_amount_int, '^\s\s*[*]\s*[A-Z]', '^\s\s*[*]\s*', ' *> ' )
 			return
 		endif
 	elseif l:left_two == '->'
 		let l:loc_text = '- ' . strpart(l:loc_text, 2)
-		if ! ledger_x#_unset_posting_pending( -eval(l:line_amount_int), '^\s\s*->\s*[A-Z]', '^\s\s*->\s*', '    ' )
+		if ! ledger_x#_unset_posting_pending( -l:line_amount_int, '^\s\s*->\s*[A-Z]', '^\s\s*->\s*', '    ' )
 			return
 		endif
 	elseif l:left_two == '*>'
 		let l:loc_text = '* ' . strpart(l:loc_text, 2)
-		if ! ledger_x#_unset_posting_pending( eval(l:line_amount_int), '^\s\s*[*]>\s*[A-Z]', '^\s\s*[*]>\s*', '  * ' )
+		if ! ledger_x#_unset_posting_pending( l:line_amount_int, '^\s\s*[*]>\s*[A-Z]', '^\s\s*[*]>\s*', '  * ' )
 			return
 		endif
 	else
@@ -235,12 +226,8 @@ function! ledger_x#toggle_qf_pending()
 	:setlocal nomodified
 	:setlocal nomodifiable
 
-	if s:pending_count < 0
-		echo 'Error: Pending action count is negative: ' . s:pending_count
-		return
-	endif
-
 	if s:pending_count == 0
+		match none
 		if s:pending_amount != 0
 			echo 'Error: Nonzero pending amount with no pending actions: ' . l:pending_amount_str
 			return
@@ -248,12 +235,34 @@ function! ledger_x#toggle_qf_pending()
 		echo 'All pending actions reverted.'
 	else
 		if s:pending_amount == 0
+			match none
 			echo 'Pending actions balance. Press > to commit.'
 		else
+			" Highlight likely location list matches for the toggled posting.
+
+			if l:line_amount_int < 0
+				" Match a positive version of the negative amount.
+				let l:amount_match = '\([^-0-9.]\)\@<=\(+\s*\)\?\V' . l:line_amount_list[0][1:] . '\m'
+			else
+				" Match a negative version of the positive amount.
+				let l:amount_match = '-\s*\V' . l:line_amount_list[0] . '\m'
+			endif
+
+			let l:line_account_name = matchstr(l:loc_text, '\(\s\s\)\@<=\(\S\+\(\s\S\+\)*\)\(\s*$\)\@=')
+
+			if s:pending_count < 0
+				echo 'Error: Pending action count is negative: ' . s:pending_count
+				return
+			endif
+
+			let l:qf_match_regexp = '/\(^-\s\+\)\@<=.\{-\}' . l:amount_match . '\s\(.\{-\}\V' . l:line_account_name . '\m\)\?/'
+
+			execute 'match ledgerXReconcileMatchMaybe ' . l:qf_match_regexp
+
 			echo 'Pending actions: ' . s:pending_count . '  Pending amount: ' . l:pending_amount_str
 		endif
 	endif
-endf
+endfunction
 
 
 " This function assumes it's called from a location list associated
@@ -295,7 +304,7 @@ function! ledger_x#_set_posting_pending( amount_int, match, from, to )
 	call setbufline(l:loc_rec.bufnr, l:loc_rec.lnum, l:ledger_line)
 
 	return 1
-endf
+endfunction
 
 
 " This function assumes it's called from a location list associated
@@ -309,10 +318,9 @@ function! ledger_x#_unset_posting_pending( amount_int, match, from, to )
 		return 0
 	endif
 
-	" Open the fold corresponding to the current location list line.
-	execute "normal \<CR>"
 	try
-		execute "normal zO"
+		execute "normal \<CR>"
+		"zO"
 	catch
 		" Empty catch needed.
 	endtry
@@ -333,7 +341,7 @@ function! ledger_x#_unset_posting_pending( amount_int, match, from, to )
 "	endif
 
 	return 1
-endf
+endfunction
 
 
 " This function assumes it's called from a location list associated
@@ -416,13 +424,15 @@ function! ledger_x#commit_qf_pending()
 		let l:loc_index = l:loc_index + 1
 	endfor
 
-	if s:pending_count != 0
+	if s:pending_count == 0
+		echo 'Committed.'
+	else
 		echo 'Error: Pending count after commit is not zero: ' . s:pending_count
 	endif
 
 	:setlocal nomodified
 	:setlocal nomodifiable
-endf
+endfunction
 
 
 nnoremap <Leader>rget  :echo ledger_x#posting_rid_get(bufnr('%'), line('.'))<CR>
@@ -464,7 +474,7 @@ function! ledger_x#posting_rid_get(buffer_number, line_number)
 	endwhile
 
 	return [0, '']
-endf
+endfunction
 
 
 nnoremap <Leader>rrm  :echo ledger_x#posting_rid_remove(bufnr('%'), line('.'))<CR>
@@ -507,7 +517,7 @@ function! ledger_x#posting_rid_remove(buffer_number, line_number)
 	execute a:buffer_number . 'bufdo! call cursor(a:line_number, 0)'
 
 	return [1, '']
-endf
+endfunction
 
 
 
@@ -548,7 +558,7 @@ function! ledger_x#posting_remove_rid(buffer_number, line_number)
 	endwhile
 
 	return [1, '']
-endf
+endfunction
 
 
 nnoremap <Leader>radd  :echo ledger_x#posting_rid_add(bufnr('%'), line('.'), printf("%08x", localtime()))<CR>
@@ -573,12 +583,13 @@ function! ledger_x#posting_rid_add(buffer_number, line_number, new_rid)
 	call setbufline(a:buffer_number, a:line_number, l:ledger_line . '  ; rID: ' . a:new_rid)
 
 	return [1, '']
-endf
+endfunction
 
 
 function! ledger_x#quit_qf()
 	if s:pending_count == 0
 		wincmd c
+		echo 'Done.'
 		return
 	endif
 
@@ -597,4 +608,5 @@ function! ledger_x#quit_qf()
 
 	" Remove markers.
 	execute '%s/^\(\s\+\)[*-]>/\1  /'
-endf
+	echo 'Pending actions have been undone.'
+endfunction
