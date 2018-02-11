@@ -14,10 +14,10 @@ set foldmethod=syntax
 
 " This is a region so that multiple consecutive comments are foldable.
 syntax region ledgerXTopLevelComment
-	\ start=/^[;#%|*].*$/
-	\ skip=/^[;#%|*].*$/
-	\ end=/^/
-	\ fold
+  \ start=/^[;#%|*].*$/
+  \ skip=/^[;#%|*].*$/
+  \ end=/^/
+  \ fold
 
 """ account ACCOUNT
 """   alias AKA
@@ -933,7 +933,7 @@ syntax match ledgerXTransactionSummaryStatusPending
 syntax match ledgerXTransactionSummaryEffectiveDateDate
   \ /\(\d\d\d\d\([-/.]\)\d\d\?\2\d\d\?\|\d\d\?[-/.]\d\d\?\)/
   \ contained
-  \ nextgroup=ledgerXTransactionSummaryStatusPending,myledgerTransactionSummaryStatusCleared,ledgerXTransactionSummaryCodeOpener,ledgerXTransactionSummaryDescription
+  \ nextgroup=ledgerXTransactionSummaryStatusPending,ledgerXTransactionSummaryStatusCleared,ledgerXTransactionSummaryCodeOpener,ledgerXTransactionSummaryDescription
   \ skipwhite
 
 syntax match ledgerXTransactionSummaryEffectiveDateOperator
@@ -1037,10 +1037,10 @@ syntax match ledgerXTransactionNoteMetadataKey
   \ contained
   \ nextgroup=ledgerXTransactionNoteMetadataSeparator
 
-syntax match myledgerTransactionNoteMetadataSeparator
+syntax match ledgerXTransactionNoteMetadataSeparator
   \ /::\?\(\s\+\)\@=/
   \ contained
-  \ nextgroup=myledgerTransactionNoteMetadataValue
+  \ nextgroup=ledgerXTransactionNoteMetadataValue
   \ skipwhite
 
 syntax match ledgerXTransactionNoteMetadataValue
@@ -1234,19 +1234,21 @@ highlight! default link ledgerXTransactionSummaryStatusCleared         Constant
 highlight! default link ledgerXTransactionSummaryStatusPending         Todo
 highlight! default link ledgerXYearLineKeyword                         Keyword
 highlight! default link ledgerXYearLineYear                            Constant
-highlight! default link myledgerApplyAccountLineAccount                 Identifier
-highlight! default link myledgerApplyAccountLineKeyword                 Keyword
-highlight! default link myledgerApplyTagLineKeyword                     Keyword
-highlight! default link myledgerApplyTagLineTag                         Tag
-highlight! default link myledgerEndApplyAccountLineKeyword              Keyword
-highlight! default link myledgerEndApplyTagLineKeyword                  Keyword
-highlight! default link myledgerEndfixedLineKeyword                     Keyword
-highlight! default link myledgerEndfixedLineSymbol                      Identifier
-highlight! default link myledgerFixedLineAmount                         Number
-highlight! default link myledgerFixedLineKeyword                        Keyword
-highlight! default link myledgerFixedLineSymbol                         Identifier
-highlight! default link myledgerTransactionAutomatedSummaryExpression   Statement
-highlight! default link myledgerTransactionAutomatedSummaryOperator     Operator
-highlight! default link myledgerTransactionNoteMetadataSeparator        Delimiter
-highlight! default link myledgerTransactionPeriodicSummaryExpression    Statement
-highlight! default link myledgerTransactionPeriodicSummaryOperator      Operator
+highlight! default link ledgerXApplyAccountLineAccount                 Identifier
+highlight! default link ledgerXApplyAccountLineKeyword                 Keyword
+highlight! default link ledgerXApplyTagLineKeyword                     Keyword
+highlight! default link ledgerXApplyTagLineTag                         Tag
+highlight! default link ledgerXEndApplyAccountLineKeyword              Keyword
+highlight! default link ledgerXEndApplyTagLineKeyword                  Keyword
+highlight! default link ledgerXEndfixedLineKeyword                     Keyword
+highlight! default link ledgerXEndfixedLineSymbol                      Identifier
+highlight! default link ledgerXFixedLineAmount                         Number
+highlight! default link ledgerXFixedLineKeyword                        Keyword
+highlight! default link ledgerXFixedLineSymbol                         Identifier
+highlight! default link ledgerXTransactionAutomatedSummaryExpression   Statement
+highlight! default link ledgerXTransactionAutomatedSummaryOperator     Operator
+highlight! default link ledgerXTransactionNoteMetadataSeparator        Delimiter
+highlight! default link ledgerXTransactionPeriodicSummaryExpression    Statement
+highlight! default link ledgerXTransactionPeriodicSummaryOperator      Operator
+
+highlight! default link ledgerXReconcileMatchMaybe                     ledgerXTransactionPostingStatusUncommitted
