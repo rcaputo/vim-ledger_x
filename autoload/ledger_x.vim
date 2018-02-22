@@ -104,9 +104,10 @@ function! ledger_x#reconcile()
 
 	" Set key mappings for interactive reconcile.
 
-	nnoremap <buffer> <space> :call ledger_x#toggle_qf_pending()<CR>
-	nnoremap <buffer> < :call ledger_x#quit_qf()<CR>
-	nnoremap <buffer> > :call ledger_x#commit_qf_pending()<CR>
+	nnoremap <buffer><nowait> <Space> :call ledger_x#toggle_qf_pending()<CR>
+	nnoremap <buffer><nowait> < :call ledger_x#quit_qf()<CR>
+	nnoremap <buffer><nowait> > :call ledger_x#commit_qf_pending()<CR>
+	nnoremap <buffer><nowait> g <CR><C-w>p
 
 	redraw
 endfunction
