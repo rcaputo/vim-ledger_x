@@ -273,6 +273,11 @@ endfunction
 " This function assumes it's called from a location list associated
 " with a ledger being reconciled.
 function! ledger_x#_set_posting_pending( amount_int, match, from, to )
+	if s:pending_count > 0 && s:pending_amount == 0
+		echo 'Pending actions balance. Please commit before marking new ones.'
+		return 0
+	endif
+
 	" Open the fold corresponding to the current location list line.
 	execute "normal \<CR>"
 	try
