@@ -161,6 +161,10 @@ function! ledger_x#toggle_qf_pending()
 	" rounding errors.
 
 	let l:line_amount_list = matchlist(l:loc_text, '\([-+]\?\) *\([0-9]*\)[.,]\([0-9][0-9]*\)\>')
+	if l:line_amount_list[2] == '0'
+		" Leading zero makes the following eval(join()) look like octal.
+		let l:line_amount_list[2] = ''
+	endif
 	let l:line_amount_int = eval(join(l:line_amount_list[1:], ''))
 	if ! strlen(l:line_amount_list[0])
 		echo "Current line doesn't have a recognizable amount: " . l:loc_text
