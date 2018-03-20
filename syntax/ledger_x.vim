@@ -578,31 +578,59 @@ syntax match ledgerXClockHoursLine
 
 """ i DATE TIME TEXT
 
-syntax match ledgerXClockInLineKeyword
-  \ /^[iI]\>/
+syntax match ledgerXClockInUnclearedLineKeyword
+  \ /^i\>/
   \ contained
-  \ nextgroup=ledgerXClockInLineDate
+  \ nextgroup=ledgerXClockInUnclearedLineDate
   \ skipwhite
 
-syntax match ledgerXClockInLineDate
+syntax match ledgerXClockInUnclearedLineDate
   \ /\(\d\d\d\d\([-/.]\)\d\d\?\2\d\d\?\|\d\d\?[-/.]\d\d\?\)/
   \ contained
-  \ nextgroup=ledgerXClockInLineTime
+  \ nextgroup=ledgerXClockInUnclearedLineTime
   \ skipwhite
 
-syntax match ledgerXClockInLineTime
+syntax match ledgerXClockInUnclearedLineTime
   \ /\d\d:\d\d:\d\d/
   \ contained
-  \ nextgroup=ledgerXClockInLineDescription
+  \ nextgroup=ledgerXClockInUnclearedLineDescription
   \ skipwhite
 
-syntax match ledgerXClockInLineDescription
+syntax match ledgerXClockInUnclearedLineDescription
   \ /\S.\{-\}\(\s*$\)\@=/
   \ contained
 
-syntax match ledgerXClockInLine
-  \ /^[iI].*$/
-  \ contains=ledgerXClockInLineKeyword
+syntax match ledgerXClockInUnclearedLine
+  \ /^i.*$/
+  \ contains=ledgerXClockInUnclearedLineKeyword
+
+""" I DATE TIME TEXT
+
+syntax match ledgerXClockInClearedLineKeyword
+  \ /^I\>/
+  \ contained
+  \ nextgroup=ledgerXClockInClearedLineDate
+  \ skipwhite
+
+syntax match ledgerXClockInClearedLineDate
+  \ /\(\d\d\d\d\([-/.]\)\d\d\?\2\d\d\?\|\d\d\?[-/.]\d\d\?\)/
+  \ contained
+  \ nextgroup=ledgerXClockInClearedLineTime
+  \ skipwhite
+
+syntax match ledgerXClockInClearedLineTime
+  \ /\d\d:\d\d:\d\d/
+  \ contained
+  \ nextgroup=ledgerXClockInClearedLineDescription
+  \ skipwhite
+
+syntax match ledgerXClockInClearedLineDescription
+  \ /\S.\{-\}\(\s*$\)\@=/
+  \ contained
+
+syntax match ledgerXClockInClearedLine
+  \ /^I.*$/
+  \ contains=ledgerXClockInClearedLineKeyword
 
 """ include FILENAME
 
@@ -1157,14 +1185,18 @@ highlight! default link ledgerXClockBalanceLineBalance                 Number
 highlight! default link ledgerXClockBalanceLineKeyword                 Keyword
 highlight! default link ledgerXClockHoursLineHours                     Number
 highlight! default link ledgerXClockHoursLineKeyword                   Keyword
-highlight! default link ledgerXClockInLineDate                         Constant
-highlight! default link ledgerXClockInLineDescription                  String
-highlight! default link ledgerXClockInLineKeyword                      Keyword
-highlight! default link ledgerXClockInLineTime                         Constant
-highlight! default link ledgerXClockOutClearedLineDate                 Constant
-highlight! default link ledgerXClockOutClearedLineDescription          String
-highlight! default link ledgerXClockOutClearedLineKeyword              Keyword
-highlight! default link ledgerXClockOutClearedLineTime                 Constant
+highlight! default link ledgerXClockInClearedLineDate                  Comment
+highlight! default link ledgerXClockInClearedLineDescription           Comment
+highlight! default link ledgerXClockInClearedLineKeyword               Comment
+highlight! default link ledgerXClockInClearedLineTime                  Comment
+highlight! default link ledgerXClockInUnclearedLineDate                Constant
+highlight! default link ledgerXClockInUnclearedLineDescription         String
+highlight! default link ledgerXClockInUnclearedLineKeyword             Keyword
+highlight! default link ledgerXClockInUnclearedLineTime                Constant
+highlight! default link ledgerXClockOutClearedLineDate                 Comment
+highlight! default link ledgerXClockOutClearedLineDescription          Comment
+highlight! default link ledgerXClockOutClearedLineKeyword              Comment
+highlight! default link ledgerXClockOutClearedLineTime                 Comment
 highlight! default link ledgerXClockOutUnclearedLineDate               Constant
 highlight! default link ledgerXClockOutUnclearedLineDescription        String
 highlight! default link ledgerXClockOutUnclearedLineKeyword            Keyword
