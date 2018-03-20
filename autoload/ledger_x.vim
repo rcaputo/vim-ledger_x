@@ -113,6 +113,40 @@ function! ledger_x#reconcile()
 endfunction
 
 
+function! ledger_x#unreconcile()
+	let l:posting_text = getline('.')
+	let l:reconcile_id = matchstr(l:posting_text, '\(^\s\+\*\s\+.*;\s*rID:\s*\)\@<=\S\+')
+
+	let l:unreconcile_report = [
+		\ g:ledger_bin, 'register',
+		\ '-f', expand('%'),
+		\ '--cleared',
+		\ "--format=%(pending ? \"+\" : \"*\") " . g:ledger_qf_reconcile_format,
+		\ "--prepend-format=%(filename):%(beg_line): ",
+		\ "--sort=date,amount,payee",
+		\ "-l", "tag(\"rID\") == \"" . l:reconcile_id . "\""
+		\ ]
+
+	call ledger_x#fake_make('%f:%l: %m', l:unreconcile_report)
+
+
+	" Don't allow the report to wrap if the window is too narrow.  For
+	" this to work best, the least important, or even redundant columns
+	" should go last.
+
+	setlocal nowrap
+
+	" Set key mappings for interactive reconcile.
+
+	nnoremap <buffer><nowait> <Space> :call ledger_x#toggle_qf_pending()<CR>
+	nnoremap <buffer><nowait> < :call ledger_x#quit_qf()<CR>
+	nnoremap <buffer><nowait> > :call ledger_x#commit_qf_pending()<CR>
+	nnoremap <buffer><nowait> g <CR><C-w>p
+
+	redraw
+endfunction
+
+
 """ Use the location list as a UI for reconciling postings.
 
 " This used to turn on cursorline, but cursorline + match = slow.

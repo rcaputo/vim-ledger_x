@@ -14,7 +14,8 @@ let b:did_ledgerx_ftplugin = 1
 setl foldtext=LedgerFoldText()
 setl omnifunc=LedgerComplete
 
-command -buffer LxReconcile call ledger_x#reconcile()
+command -buffer LxReconcile   call ledger_x#reconcile()
+command -buffer LxUnReconcile call ledger_x#unreconcile()
 
 command -buffer LxSyntax set filetype=ledger_x|setl foldtext=LedgerFoldText()
 
@@ -24,8 +25,9 @@ nnoremap <buffer><unique><nowait>         <Leader>ls :echo map(synstack(line('.'
 " Ledger Align
 vnoremap <buffer><unique><nowait>         <Leader>la :LedgerAlign<CR>
 
-" Ledger Reconcile
+" Ledger Reconcile and Unreconcile
 nnoremap <buffer><unique><nowait>         <Leader>lr :LxReconcile<CR>
+nnoremap <buffer><unique><nowait>         <Leader>lu :LxUnReconcile<CR>
 
 nnoremap <F9>  :lprev<CR>zo
 nnoremap <F10> :lnext<CR>zo
