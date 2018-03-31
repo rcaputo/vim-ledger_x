@@ -116,6 +116,8 @@ function! ledger_x#reconcile()
 
 	redraw
 
+	echo "Press space to toggle the posting at the cursor."
+
 	" Extract item accounts and amounts.
 	let l:loc_list = getloclist(0)
 	let l:loc_list_index = 0
@@ -160,6 +162,12 @@ endfunction
 
 
 function! ledger_x#unreconcile()
+	" TODO: Verify the current buffer is filetype ledger first.
+	if &modified
+		echo 'Buffer is modified. Please save it first.'
+		return
+	endif
+
 	let l:posting_text = getline('.')
 	let l:reconcile_id = matchstr(l:posting_text, '\(^\s\+\*\s\+.*;\s*rID:\s*\)\@<=\S\+')
 
@@ -198,6 +206,8 @@ function! ledger_x#unreconcile()
 	setlocal foldmethod=manual
 
 	redraw
+
+	echo "Press space to toggle the posting at the cursor."
 
 	" Extract item accounts and amounts.
 	let l:loc_list = getloclist(0)
@@ -574,7 +584,7 @@ function! ledger_x#commit_qf_pending()
 	endfor
 
 	if s:pending_count == 0
-		echo 'Committed.'
+		echo 'Pending actions committed. Press < to close the window.'
 	else
 		echo 'Error: Pending count after commit is not zero: ' . s:pending_count
 	endif
