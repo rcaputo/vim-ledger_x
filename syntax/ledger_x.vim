@@ -1284,3 +1284,14 @@ highlight! default link ledgerXTransactionPeriodicSummaryExpression    Statement
 highlight! default link ledgerXTransactionPeriodicSummaryOperator      Operator
 
 highlight! default link ledgerXReconcileMatchMaybe                     ledgerXTransactionPostingStatusUncommitted
+
+" LedgerX QuickFix / Location List syntax.
+syntax match ledgerXQfNormal         /^[-*] .*$/
+syntax match ledgerXQfFlagged        /^[-*]>.*$/
+syntax match ledgerXQfPassableMatch  /^[-*]?.*$/
+syntax match ledgerXQfGoodMatch      /^[-*]!.*$/
+
+highlight! default      ledgerXQfNormal            term=NONE ctermfg=LightGray gui=NONE guifg=LightGray
+highlight! default      ledgerXQfFlagged           term=bold ctermfg=Yellow    gui=bold guifg=Yellow
+highlight! default      ledgerXQfPassableMatch     term=NONE ctermfg=Yellow    gui=NONE guifg=Yellow
+highlight! default      ledgerXQfGoodMatch         term=NONE ctermfg=Green     gui=NONE guifg=Green

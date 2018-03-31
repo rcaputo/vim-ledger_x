@@ -21,6 +21,7 @@ command -buffer LxSyntax set filetype=ledger_x|setl foldtext=LedgerFoldText()
 
 " A handy way to dump the syntax stack at the cursor.
 nnoremap <buffer><unique><nowait>         <Leader>ls :echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')<CR>
+nnoremap <buffer><unique><nowait>         <Leader>lx :echo eval(@")<CR>
 
 " Ledger Align
 vnoremap <buffer><unique><nowait>         <Leader>la :LedgerAlign<CR>

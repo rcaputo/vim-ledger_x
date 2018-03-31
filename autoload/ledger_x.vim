@@ -95,6 +95,7 @@ function! ledger_x#reconcile()
 	let s:pending_count = 0
 	let s:pending_amount = 0
 	let s:pending_places = -1
+	let s:loc_list_fields = []
 
 	" Don't allow the report to wrap if the window is too narrow.  For
 	" this to work best, the least important, or even redundant columns
@@ -107,9 +108,54 @@ function! ledger_x#reconcile()
 	nnoremap <buffer><nowait> <Space> :call ledger_x#toggle_qf_pending()<CR>
 	nnoremap <buffer><nowait> < :call ledger_x#quit_qf()<CR>
 	nnoremap <buffer><nowait> > :call ledger_x#commit_qf_pending()<CR>
-	nnoremap <buffer><nowait> g <CR><C-w>p
+	nnoremap <buffer><nowait> g :call ledger_x#_go_to_posting()<CR>
+
+	setlocal filetype=ledger
+	setlocal syntax=ledger_x
+	setlocal foldmethod=manual
 
 	redraw
+
+	" Extract item accounts and amounts.
+	let l:loc_list = getloclist(0)
+	let l:loc_list_index = 0
+	let l:loc_list_len = len(l:loc_list)
+	while l:loc_list_index < l:loc_list_len
+
+		let l:line_amount_list = matchlist(l:loc_list[l:loc_list_index].text, '\([-+]\?\)\s*\([0-9,.]\+\)')
+		if ! strlen(l:line_amount_list[0])
+			echo "Current line doesn't have a recognizable amount: " . l:loc_text
+			return
+		endif
+
+		let l:line_amount_parts_list = split( l:line_amount_list[2], '\D\+', 1 )
+		let l:line_amount_string = join(l:line_amount_parts_list, '')
+		let l:line_amount_string = substitute(l:line_amount_string, '^0\+', '', '')
+		if ! strlen(l:line_amount_string)
+			let l:line_amount_int = 0
+		else
+			let l:line_amount_int = eval(l:line_amount_list[1] . l:line_amount_string)
+		endif
+
+		" Note the number of decimal places to scale the sum back to a
+		" displayable version.
+		"
+		" Ledger3 normalizes decimal places, which is handy but fragile to
+		" assume.  Verify that assumption.
+
+		let l:pending_places = strlen(l:line_amount_parts_list[-1])
+		if s:pending_places < 0
+			let s:pending_places = l:pending_places
+		elseif s:pending_places != l:pending_places
+			echo printf("Error: Decimal places for current line do not match: %d != %d", l:pending_places, s:pending_places)
+		endif
+
+		" How about the account?
+		let l:line_account_name = matchstr(l:loc_list[l:loc_list_index].text, '\(\s\s\)\@<=\(\S\+\(\s\S\+\)*\)\(\s*$\)\@=')
+
+		call add( s:loc_list_fields, { 'account' : l:line_account_name, 'amount' : l:line_amount_int } )
+		let l:loc_list_index += 1
+	endwhile
 endfunction
 
 
@@ -129,6 +175,10 @@ function! ledger_x#unreconcile()
 
 	call ledger_x#fake_make('%f:%l: %m', l:unreconcile_report)
 
+	let s:pending_count = 0
+	let s:pending_amount = 0
+	let s:pending_places = -1
+	let s:loc_list_fields = []
 
 	" Don't allow the report to wrap if the window is too narrow.  For
 	" this to work best, the least important, or even redundant columns
@@ -143,7 +193,54 @@ function! ledger_x#unreconcile()
 	nnoremap <buffer><nowait> > :call ledger_x#commit_qf_pending()<CR>
 	nnoremap <buffer><nowait> g <CR><C-w>p
 
+	setlocal filetype=ledger
+	setlocal syntax=ledger_x
+	setlocal foldmethod=manual
+
 	redraw
+
+	" Extract item accounts and amounts.
+	let l:loc_list = getloclist(0)
+	let l:loc_list_index = 0
+	let l:loc_list_len = len(l:loc_list)
+	while l:loc_list_index < l:loc_list_len
+
+		let l:line_amount_list = matchlist(l:loc_list[l:loc_list_index].text, '\([-+]\?\)\s*\([0-9,.]\+\)')
+		if ! strlen(l:line_amount_list[0])
+			echo "Current line doesn't have a recognizable amount: " . l:loc_text
+			return
+		endif
+
+		let l:line_amount_parts_list = split( l:line_amount_list[2], '\D\+', 1 )
+		let l:line_amount_string = join(l:line_amount_parts_list, '')
+		let l:line_amount_string = substitute(l:line_amount_string, '^0\+', '', '')
+		if ! strlen(l:line_amount_string)
+			let l:line_amount_int = 0
+		else
+			let l:line_amount_int = eval(l:line_amount_list[1] . l:line_amount_string)
+		endif
+
+		" Note the number of decimal places to scale the sum back to a
+		" displayable version.
+		"
+		" Ledger3 normalizes decimal places, which is handy but fragile to
+		" assume.  Verify that assumption.
+
+		let l:pending_places = strlen(l:line_amount_parts_list[-1])
+		if s:pending_places < 0
+			let s:pending_places = l:pending_places
+		elseif s:pending_places != l:pending_places
+			echo printf("Error: Decimal places for current line do not match: %d != %d", l:pending_places, s:pending_places)
+		endif
+
+		" How about the account?
+		let l:line_account_name = matchstr(l:loc_list[l:loc_list_index].text, '\(\s\s\)\@<=\(\S\+\(\s\S\+\)*\)\(\s*$\)\@=')
+
+		call add( s:loc_list_fields, { 'account' : l:line_account_name, 'amount' : l:line_amount_int } )
+		let l:loc_list_index += 1
+	endwhile
+
+	echo s:loc_list_fields
 endfunction
 
 
@@ -185,63 +282,38 @@ function! ledger_x#toggle_qf_pending()
 	" modifiable again, and invalidate the location list so it can't be
 	" opened and reused.
 
-	let l:loc_text = getline('.')
+	let l:cur_line = line('.')
+	let l:loc_text = getline(l:cur_line)
+	let l:line_amount_int = s:loc_list_fields[l:cur_line - 1]['amount']
+	let l:line_account = s:loc_list_fields[l:cur_line - 1]['account']
 
 	" TODO: When going from + or space to '*', remember the previous
 	" state somewhere.  When going from '*' back to unreconciled, use
 	" the previously saved state.
-
-	" Convert the line amount to an integer to avoid IEEE floating point
-	" rounding errors.
-
-	let l:line_amount_list = matchlist(l:loc_text, '\([-+]\?\) *\([0-9]*\)[.,]\([0-9][0-9]*\)\>')
-	if l:line_amount_list[2] == '0'
-		" Leading zero makes the following eval(join()) look like octal.
-		let l:line_amount_list[2] = ''
-	endif
-	let l:line_amount_int = eval(join(l:line_amount_list[1:], ''))
-	if ! strlen(l:line_amount_list[0])
-		echo "Current line doesn't have a recognizable amount: " . l:loc_text
-		return
-	endif
-
-	" Note the number of decimal places to scale the sum back to a
-	" displayable version.
-	"
-	" Ledger3 normalizes decimal places, which is handy but fragile to
-	" assume.  Verify that assumption.
-
-	let l:pending_places = strlen(l:line_amount_list[3])
-	if s:pending_places < 0
-		let s:pending_places = l:pending_places
-	elseif s:pending_places != l:pending_places
-		echo printf("Error: Decimal places for current line do not match: %d != %d", l:pending_places, s:pending_places)
-		return
-	endif
 
 	" Figure out what to do from the location list text.
 	" Avoid keeping posting state in two places, as modifying one set of
 	" things is twice as better as managing two sets.
 
 	let l:left_two = strpart(l:loc_text, 0, 2)
-	if l:left_two == '- '
+	if l:left_two =~ '-[!? ]'
 		let l:loc_text = '->' . strpart(l:loc_text, 2)
-		if ! ledger_x#_set_posting_pending( l:line_amount_int, '^\s\s*[A-Z]', '^\s\s*', ' -> ' )
+		if ! ledger_x#_set_posting_pending( l:cur_line, l:line_amount_int, l:line_account, '^\s\s*[A-Z]', '^\s\s*', ' -> ' )
 			return
 		endif
-	elseif l:left_two == '* '
+	elseif l:left_two =~ '*[!? ]'
 		let l:loc_text = '*>' . strpart(l:loc_text, 2)
-		if ! ledger_x#_set_posting_pending( -l:line_amount_int, '^\s\s*[*]\s*[A-Z]', '^\s\s*[*]\s*', ' *> ' )
+		if ! ledger_x#_set_posting_pending( l:cur_line, l:line_amount_int, l:line_account, '^\s\s*[*]\s*[A-Z]', '^\s\s*[*]\s*', ' *> ' )
 			return
 		endif
 	elseif l:left_two == '->'
 		let l:loc_text = '- ' . strpart(l:loc_text, 2)
-		if ! ledger_x#_unset_posting_pending( -l:line_amount_int, '^\s\s*->\s*[A-Z]', '^\s\s*->\s*', '    ' )
+		if ! ledger_x#_unset_posting_pending( l:cur_line, l:line_amount_int, l:line_account, '^\s\s*->\s*[A-Z]', '^\s\s*->\s*', '    ' )
 			return
 		endif
 	elseif l:left_two == '*>'
 		let l:loc_text = '* ' . strpart(l:loc_text, 2)
-		if ! ledger_x#_unset_posting_pending( l:line_amount_int, '^\s\s*[*]>\s*[A-Z]', '^\s\s*[*]>\s*', '  * ' )
+		if ! ledger_x#_unset_posting_pending( l:cur_line, l:line_amount_int, l:line_account, '^\s\s*[*]>\s*[A-Z]', '^\s\s*[*]>\s*', '  * ' )
 			return
 		endif
 	else
@@ -274,39 +346,29 @@ function! ledger_x#toggle_qf_pending()
 		echo 'All pending actions reverted.'
 	else
 		if s:pending_amount == 0
-			match none
 			echo 'Pending actions balance. Press > to commit.'
 		else
-			" Highlight likely location list matches for the toggled posting.
-
-			if l:line_amount_int < 0
-				" Match a positive version of the negative amount.
-				let l:amount_match = '\([^-0-9.]\)\@<=\(+\s*\)\?\V' . l:line_amount_list[0][1:] . '\m'
-			else
-				" Match a negative version of the positive amount.
-				let l:amount_match = '-\s*\V' . l:line_amount_list[0] . '\m'
-			endif
-
-			let l:line_account_name = matchstr(l:loc_text, '\(\s\s\)\@<=\(\S\+\(\s\S\+\)*\)\(\s*$\)\@=')
-
-			if s:pending_count < 0
-				echo 'Error: Pending action count is negative: ' . s:pending_count
-				return
-			endif
-
-			let l:qf_match_regexp = '/\(^-\s\+\)\@<=.\{-\}' . l:amount_match . '\s\(.\{-\}\V' . l:line_account_name . '\m\)\?/'
-
-			execute 'match ledgerXReconcileMatchMaybe ' . l:qf_match_regexp
-
 			echo 'Pending actions: ' . s:pending_count . '  Pending amount: ' . l:pending_amount_str
 		endif
 	endif
 endfunction
 
 
+function! ledger_x#_go_to_posting()
+	" Open the fold corresponding to the current location list line.
+	execute "normal \<CR>"
+	try
+		execute "normal zO"
+	catch
+		" Empty catch needed.
+	endtry
+	wincmd p
+endfunction
+
+
 " This function assumes it's called from a location list associated
 " with a ledger being reconciled.
-function! ledger_x#_set_posting_pending( amount_int, match, from, to )
+function! ledger_x#_set_posting_pending( cur_line, amount_int, account, match, from, to )
 	if s:pending_count > 0 && s:pending_amount == 0
 		echo 'Pending actions balance. Please commit before marking new ones.'
 		return 0
@@ -347,13 +409,40 @@ function! ledger_x#_set_posting_pending( amount_int, match, from, to )
 	let l:ledger_line = substitute(l:ledger_line, a:from, a:to, '')
 	call setbufline(l:loc_rec.bufnr, l:loc_rec.lnum, l:ledger_line)
 
+	" Flag related postings in the location list.
+
+	:setlocal modifiable
+	let l:loc_list_fields_index = 0
+	let l:loc_list_fields_len = len(s:loc_list_fields)
+	while l:loc_list_fields_index < l:loc_list_fields_len
+		if s:loc_list_fields[l:loc_list_fields_index].amount == -a:amount_int
+			if s:loc_list_fields[l:loc_list_fields_index].account == a:account
+				if l:loc_list_fields_index != a:cur_line - 1
+					" Very good match.
+					let l:other_text = getline(l:loc_list_fields_index + 1)
+					let l:other_text = substitute(l:other_text, '^\([-*]\) ', '\1!', '')
+					call setline(l:loc_list_fields_index + 1, l:other_text)
+				endif
+			else
+				" Passable match.
+				let l:other_text = getline(l:loc_list_fields_index + 1)
+				let l:other_text = substitute(l:other_text, '^\([-*]\) ', '\1?', '')
+				call setline(l:loc_list_fields_index + 1, l:other_text)
+			endif
+		endif
+
+		let l:loc_list_fields_index += 1
+	endwhile
+	:setlocal nomodified
+	:setlocal nomodifiable
+
 	return 1
 endfunction
 
 
 " This function assumes it's called from a location list associated
 " with a ledger being reconciled.
-function! ledger_x#_unset_posting_pending( amount_int, match, from, to )
+function! ledger_x#_unset_posting_pending( cur_line, amount_int, account, match, from, to )
 	let l:loc_rec = getloclist(0)[line(".") - 1]
 	let l:ledger_line = getbufline(l:loc_rec.bufnr, l:loc_rec.lnum)[0]
 
@@ -383,6 +472,33 @@ function! ledger_x#_unset_posting_pending( amount_int, match, from, to )
 "		" There still are more pending actions. Only close the current fold.
 "		call feedkeys("\<CR>zC\<C-w>p")
 "	endif
+
+	" Unflag related postings in the location list.
+
+	:setlocal modifiable
+	let l:loc_list_fields_index = 0
+	let l:loc_list_fields_len = len(s:loc_list_fields)
+	while l:loc_list_fields_index < l:loc_list_fields_len
+		if s:loc_list_fields[l:loc_list_fields_index].amount == a:amount_int
+			if s:loc_list_fields[l:loc_list_fields_index].account == a:account
+				if l:loc_list_fields_index != a:cur_line - 1
+					" Very good match.
+					let l:other_text = getline(l:loc_list_fields_index + 1)
+					let l:other_text = substitute(l:other_text, '^\([-*]\)[!?]', '\1 ', '')
+					call setline(l:loc_list_fields_index + 1, l:other_text)
+				endif
+			else
+				" Passable match.
+				let l:other_text = getline(l:loc_list_fields_index + 1)
+				let l:other_text = substitute(l:other_text, '^\([-*]\)[!?]', '\1 ', '')
+				call setline(l:loc_list_fields_index + 1, l:other_text)
+			endif
+		endif
+
+		let l:loc_list_fields_index += 1
+	endwhile
+	:setlocal nomodified
+	:setlocal nomodifiable
 
 	return 1
 endfunction
