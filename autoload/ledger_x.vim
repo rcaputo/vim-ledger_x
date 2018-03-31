@@ -108,7 +108,7 @@ function! ledger_x#reconcile()
 	nnoremap <buffer><nowait> <Space> :call ledger_x#toggle_qf_pending()<CR>
 	nnoremap <buffer><nowait> < :call ledger_x#quit_qf()<CR>
 	nnoremap <buffer><nowait> > :call ledger_x#commit_qf_pending()<CR>
-	nnoremap <buffer><nowait> g :call ledger_x#_go_to_posting()<CR>
+	nnoremap <buffer><nowait> g :call ledger_x#go_to_posting()<CR>
 
 	setlocal filetype=ledger
 	setlocal syntax=ledger_x
@@ -239,8 +239,6 @@ function! ledger_x#unreconcile()
 		call add( s:loc_list_fields, { 'account' : l:line_account_name, 'amount' : l:line_amount_int } )
 		let l:loc_list_index += 1
 	endwhile
-
-	echo s:loc_list_fields
 endfunction
 
 
@@ -338,7 +336,6 @@ function! ledger_x#toggle_qf_pending()
 	:setlocal nomodifiable
 
 	if s:pending_count == 0
-		match none
 		if s:pending_amount != 0
 			echo 'Error: Nonzero pending amount with no pending actions: ' . l:pending_amount_str
 			return
@@ -354,7 +351,7 @@ function! ledger_x#toggle_qf_pending()
 endfunction
 
 
-function! ledger_x#_go_to_posting()
+function! ledger_x#go_to_posting()
 	" Open the fold corresponding to the current location list line.
 	execute "normal \<CR>"
 	try
@@ -374,14 +371,7 @@ function! ledger_x#_set_posting_pending( cur_line, amount_int, account, match, f
 		return 0
 	endif
 
-	" Open the fold corresponding to the current location list line.
-	execute "normal \<CR>"
-	try
-		execute "normal zO"
-	catch
-		" Empty catch needed.
-	endtry
-	wincmd p
+	call ledger_x#go_to_posting()
 
 	let l:loc_rec = getloclist(0)[line(".") - 1]
 	let l:ledger_line = getbufline(l:loc_rec.bufnr, l:loc_rec.lnum)[0]
@@ -451,15 +441,9 @@ function! ledger_x#_unset_posting_pending( cur_line, amount_int, account, match,
 		return 0
 	endif
 
-	try
-		execute "normal \<CR>"
-		"zO"
-	catch
-		" Empty catch needed.
-	endtry
-	wincmd p
+	call ledger_x#go_to_posting()
 
-	let s:pending_amount = s:pending_amount + a:amount_int
+	let s:pending_amount = s:pending_amount - a:amount_int
 	let s:pending_count  = s:pending_count  - 1
 
 	let l:ledger_line = substitute(l:ledger_line, a:from, a:to, '')
@@ -479,7 +463,7 @@ function! ledger_x#_unset_posting_pending( cur_line, amount_int, account, match,
 	let l:loc_list_fields_index = 0
 	let l:loc_list_fields_len = len(s:loc_list_fields)
 	while l:loc_list_fields_index < l:loc_list_fields_len
-		if s:loc_list_fields[l:loc_list_fields_index].amount == a:amount_int
+		if s:loc_list_fields[l:loc_list_fields_index].amount == -a:amount_int
 			if s:loc_list_fields[l:loc_list_fields_index].account == a:account
 				if l:loc_list_fields_index != a:cur_line - 1
 					" Very good match.
@@ -540,7 +524,7 @@ function! ledger_x#commit_qf_pending()
 
 	let l:loc_index = 0
 	for l:loc_text in getline(1, '$')
-		let l:left_two = matchstr(l:loc_text, '^[-*]>')
+		let l:left_two = matchstr(l:loc_text, '^[-*][>?!]')
 		if strlen(l:left_two) == 0
 			let l:loc_index = l:loc_index + 1
 			continue
@@ -560,6 +544,7 @@ function! ledger_x#commit_qf_pending()
 			let l:ledger_line .= '  ; rID: ' . l:reconciliation_id
 
 			let l:loc_prefix = '* '
+			let s:pending_count = s:pending_count - 1
 		elseif l:left_two == '*>'
 			if ! l:ledger_line =~ '^\s\s*[*]>\s*'
 				echo 'Ledger line with pending unreconcile is already unreconciled: ' . l:ledger_line
@@ -571,6 +556,11 @@ function! ledger_x#commit_qf_pending()
 			let l:ledger_line = substitute(l:ledger_line, '\s\+;\s*rID:.*', '', '')
 
 			let l:loc_prefix = '- '
+			let s:pending_count = s:pending_count - 1
+		elseif l:left_two =~ '^-[?!]'
+			let l:loc_prefix = '- '
+		elseif l:left_two =~ '^*[?!]'
+			let l:loc_prefix = '* '
 		else
 			echo 'Ledger line has strange prefix: ' . l:ledger_line
 			let l:loc_index = l:loc_index + 1
@@ -578,7 +568,6 @@ function! ledger_x#commit_qf_pending()
 		endif
 
 		call setline(l:loc_index + 1, l:loc_prefix . strpart(l:loc_text, 2))
-		let s:pending_count = s:pending_count - 1
 		call setbufline(l:loc_rec.bufnr, l:loc_rec.lnum, l:ledger_line)
 
 		let l:loc_index = l:loc_index + 1
