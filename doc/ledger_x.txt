@@ -1,42 +1,60 @@
 *ledger_x.txt	eXtensions to the official Plugin for the ledger filetype.
 
-  Reconciling...|ledger_x-reconciling| 
-  Syntax........|ledger_x-syntaax| 
-  Installing....|ledger_x-installing| 
-  Contributing..|ledger_x-contributing| 
-  License.......|ledger_x-license| 
+  Reconciling....|ledger_x-reconciling| 
+  Unreconciling..|ledger_x-unreconciling|
+  Syntax.........|ledger_x-syntaax| 
+  Installing.....|ledger_x-installing| 
+  Contributing...|ledger_x-contributing| 
+  License........|ledger_x-license| 
 
 ==============================================================================
-                                                          *ledger_x-reconciling*
+                                           *ledger_x-reconciling* *LxReconcile* *lr*
 Reconciling~
 
-Ledger_X implements an interactive reconciliation function.  Type <leader>lr
-in an unmodified ledger window.  At the prompt, enter a partial or full
-account name to reconcile.  A location list window will appear containing
-uncleared postings for that account.
+The LxReconcile command starts Ledger_X's interactive reconciler.  Ledger_X
+maps <leader>lr to this command.
 
-Three keys have special meaning in the reconciliation location list:
+LxReconcile prompts for an account to reconcile.  The account will be passed
+verbatim to the ledger-cli reporting program, so it can be anything that
+program recognizes.
 
-Space will toggle the "pending" state of the posting under the cursor.
-Uncleared postings will be marked "->", and cleared ones will be marked "*>".
+A location list will open containing all matching uncleared postings.
 
-Greater-than (">") will commit "pending" actions.  Postings marked "->" will
-be converted to "*".  Postings with "*>" will have all status flags removed.
+Interaction is done through the location list:
+
+"g" will go to the posting in the ledger window.  If a fold is hiding the
+posting, it will be opened.
+
+Space will toggle the posting under the cursor, between "pending reconcile"
+and not.  The toggled posting will be displayed and highlighted in the main
+ledger window.
+
+">" will commit pending actions, but it will only succeed if the amounts of
+the pending actions are in balance.
+
+"<" will close the location list.  Pending actions will be reverted.  Ledger_X
+will require confirmation if any actions are pending.
 
 Each group of postings committed with ">" will be assigned a distinct
-reconciliation ID.  This can be used for auditing and to verify that old
-transactions have not been accidentally modified.
+reconciliation ID.  This can be used for tracing or charting cash flows or to
+verify the integrity of a ledger after changes have been made.  LxUnReconcile
+uses them to find matching postings.
+
+                                       *ledger_x-unreconciling* *LxUnReconcile* *lu*
+Unreconciling~
+
+The LxUnReconcile command starts Ledger_X's interactive reconciler in
+"un-reconcile" mode.  The cleared posting under the cursor and all the
+postings cleared with it during LxReconcile will appear in the location list
+window.  The same interactive keystokes used by LxReconcile will be available
+to unclear the postings and remove their reconciliation ID metadata.
 
 ==============================================================================
                                                                *ledger_x-syntax*
 Syntax~
 
 Ledger_X includes an experimental syntax highlighting that attempts to parse
-the ledger file format more completely.
-
-It can be enabled by entering this command from a ledger window
-
-  :set filetype=ledger_x
+the ledger file format more completely.  It will be activated automatically.
 
 ==============================================================================
                                                            *ledger_x-installing*
@@ -68,9 +86,9 @@ Proper attribution will be given to the contributor, if possible.
                                                               *ledger_x-license*
 License~
 
-Ledger-X is Copyright 2017-2018 by Rocco Caputo.
+Ledger_X is Copyright 2017-2018 by Rocco Caputo.
 
-Ledger-X is currently provided under:
+Ledger_X is currently provided under:
 Attribution-NonCommercial-ShareAlike 4.0 International
 (CC BY-NC-SA 4.0).
 
