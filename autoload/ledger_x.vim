@@ -172,14 +172,14 @@ function! ledger_x#unreconcile()
 	let l:reconcile_id = matchstr(l:posting_text, '\(^\s\+\*\s\+.*;\s*rID:\s*\)\@<=\S\+')
 
 	let l:unreconcile_report = [
-		\ g:ledger_bin, 'register',
-		\ '-f', expand('%'),
-		\ '--cleared',
-		\ "--format=%(pending ? \"+\" : \"*\") " . g:ledger_qf_reconcile_format,
-		\ "--prepend-format=%(filename):%(beg_line): ",
-		\ "--sort=date,amount,payee",
-		\ "-l", "tag(\"rID\") == \"" . l:reconcile_id . "\""
-		\ ]
+				\ g:ledger_bin, 'register',
+				\ '-f', expand('%'),
+				\ '--cleared',
+				\ "--format=%(pending ? \"+\" : \"*\") " . g:ledger_qf_reconcile_format,
+				\ "--prepend-format=%(filename):%(beg_line): ",
+				\ "--sort=date,amount,payee",
+				\ "-l", "tag(\"rID\") == \"" . l:reconcile_id . "\""
+				\ ]
 
 	call ledger_x#fake_make('%f:%l: %m', l:unreconcile_report)
 
@@ -271,10 +271,10 @@ augroup ReconcileQuickfix
 	" After reading the quickfix (or location list) buffer, remove the
 	" file and line information at the beginning of each line.
 	autocmd BufReadPost quickfix
-		\   setlocal modifiable
-		\ | silent exe '%s/^[^|]*|[^|]*| //'
-		\ | setlocal nomodifiable
-augroup END 
+				\   setlocal modifiable
+				\ | silent exe '%s/^[^|]*|[^|]*| //'
+				\ | setlocal nomodifiable
+augroup END
 
 
 function! ledger_x#toggle_qf_pending()
@@ -306,22 +306,22 @@ function! ledger_x#toggle_qf_pending()
 	let l:left_two = strpart(l:loc_text, 0, 2)
 	if l:left_two =~ '-[!? ]'
 		let l:loc_text = '->' . strpart(l:loc_text, 2)
-		if ! ledger_x#_set_posting_pending( l:cur_line, l:line_amount_int, l:line_account, '^\s\s*[A-Z]', '^\s\s*', ' -> ' )
+		if ! ledger_x#_set_posting_pending( l:cur_line, l:line_amount_int, l:line_account, '^\s\s*[A-Z]', '^\s\s*', ' -> ', '^\(-\)[!? ]' )
 			return
 		endif
 	elseif l:left_two =~ '*[!? ]'
 		let l:loc_text = '*>' . strpart(l:loc_text, 2)
-		if ! ledger_x#_set_posting_pending( l:cur_line, l:line_amount_int, l:line_account, '^\s\s*[*]\s*[A-Z]', '^\s\s*[*]\s*', ' *> ' )
+		if ! ledger_x#_set_posting_pending( l:cur_line, l:line_amount_int, l:line_account, '^\s\s*[*]\s*[A-Z]', '^\s\s*[*]\s*', ' *> ', '^\(*\)[!? ]' )
 			return
 		endif
 	elseif l:left_two == '->'
 		let l:loc_text = '- ' . strpart(l:loc_text, 2)
-		if ! ledger_x#_unset_posting_pending( l:cur_line, l:line_amount_int, l:line_account, '^\s\s*->\s*[A-Z]', '^\s\s*->\s*', '    ' )
+		if ! ledger_x#_unset_posting_pending( l:cur_line, l:line_amount_int, l:line_account, '^\s\s*->\s*[A-Z]', '^\s\s*->\s*', '    ', '->' )
 			return
 		endif
 	elseif l:left_two == '*>'
 		let l:loc_text = '* ' . strpart(l:loc_text, 2)
-		if ! ledger_x#_unset_posting_pending( l:cur_line, l:line_amount_int, l:line_account, '^\s\s*[*]>\s*[A-Z]', '^\s\s*[*]>\s*', '  * ' )
+		if ! ledger_x#_unset_posting_pending( l:cur_line, l:line_amount_int, l:line_account, '^\s\s*[*]>\s*[A-Z]', '^\s\s*[*]>\s*', '  * ', '*>' )
 			return
 		endif
 	else
@@ -336,12 +336,47 @@ function! ledger_x#toggle_qf_pending()
 	let l:pending_fracts = string(s:pending_amount)[-(s:pending_places):]
 	let l:pending_amount_str = l:pending_wholes . '.' . l:pending_fracts
 
-	" Update the location list to confirm the action.
-	" Keep the modified flag clear so the location list buffer can be
-	" quit normally.
+	" Update the location list reflect the current reconciliation state.
 
 	:setlocal modifiable
+
+	" The line that was toggled.
 	call setline(line('.'), l:loc_text)
+
+	" Clear all hints.
+	" TODO: Only needed when toggling a posting off.
+	" TODO: I'd prefer to do something like
+	"   silent exe ':%s/^\([-*]\)>/\1 /'
+	" but it still displays "Pattern not found" errors when there was
+	" nothing to do.
+	let l:loc_line_index = 0
+	for l:loc_text in getline(1, '$')
+		if l:loc_text =~ '^[-*][?!]'
+			let l:loc_text = substitute(l:loc_text, '^\([-*]\)[?!]', '\1 ', '')
+			call setbufline(l:loc_line_index, l:loc_text)
+		endif
+		let l:loc_line_index += 1
+	endfor
+
+	" Set new hints.
+
+	let l:loc_rec_index = 0
+	for l:loc_text in getline(1, '$')
+		if l:loc_text =~ '^->'
+			let l:loc_amount_int = s:loc_list_fields[l:loc_rec_index]['amount']
+			let l:loc_account = s:loc_list_fields[l:loc_rec_index]['account']
+			call ledger_x#_set_hints('^\(-\) ', l:loc_amount_int, l:loc_account)
+		elseif l:loc_text =~ '^*>'
+			let l:loc_amount_int = s:loc_list_fields[l:loc_rec_index]['amount']
+			let l:loc_account = s:loc_list_fields[l:loc_rec_index]['account']
+			call ledger_x#_set_hints('^\(*\) ', l:loc_amount_int, l:loc_account)
+		endif
+		let l:loc_rec_index += 1
+	endfor
+
+	" Clear the modified flag so the location list buffer can be quit
+	" without confirmation.
+	" TODO: Only do this when s:pending_count is zero.
 	:setlocal nomodified
 	:setlocal nomodifiable
 
@@ -372,10 +407,35 @@ function! ledger_x#go_to_posting()
 	wincmd p
 endfunction
 
+" This function assumes it's called from a location list associated
+" with a ledger being reconciled.
+function! ledger_x#_set_hints(loc_match, amount_int, account)
+	let l:loc_list_fields_index = 0
+	for l:loc_text in getline(1, '$')
+		if l:loc_text =~ a:loc_match
+			if s:loc_list_fields[l:loc_list_fields_index].amount == -a:amount_int
+				if s:loc_list_fields[l:loc_list_fields_index].account == a:account
+					" Perfect match.
+					let l:other_text = getline(l:loc_list_fields_index + 1)
+					let l:other_text = substitute(l:other_text, a:loc_match, '\1!', '')
+					echo l:other_text
+					call setline(l:loc_list_fields_index + 1, l:other_text)
+				else
+					" Passable match.
+					let l:other_text = getline(l:loc_list_fields_index + 1)
+					let l:other_text = substitute(l:other_text, a:loc_match, '\1?', '')
+					echo l:other_text
+					call setline(l:loc_list_fields_index + 1, l:other_text)
+				endif
+			endif
+		endif
+		let l:loc_list_fields_index += 1
+	endfor
+endfunction
 
 " This function assumes it's called from a location list associated
 " with a ledger being reconciled.
-function! ledger_x#_set_posting_pending( cur_line, amount_int, account, match, from, to )
+function! ledger_x#_set_posting_pending( cur_line, amount_int, account, match, from, to, loc_match )
 	if s:pending_count > 0 && s:pending_amount == 0
 		echo 'Pending actions balance. Please commit before marking new ones.'
 		return 0
@@ -409,40 +469,13 @@ function! ledger_x#_set_posting_pending( cur_line, amount_int, account, match, f
 	let l:ledger_line = substitute(l:ledger_line, a:from, a:to, '')
 	call setbufline(l:loc_rec.bufnr, l:loc_rec.lnum, l:ledger_line)
 
-	" Flag related postings in the location list.
-
-	:setlocal modifiable
-	let l:loc_list_fields_index = 0
-	let l:loc_list_fields_len = len(s:loc_list_fields)
-	while l:loc_list_fields_index < l:loc_list_fields_len
-		if s:loc_list_fields[l:loc_list_fields_index].amount == -a:amount_int
-			if s:loc_list_fields[l:loc_list_fields_index].account == a:account
-				if l:loc_list_fields_index != a:cur_line - 1
-					" Very good match.
-					let l:other_text = getline(l:loc_list_fields_index + 1)
-					let l:other_text = substitute(l:other_text, '^\([-*]\) ', '\1!', '')
-					call setline(l:loc_list_fields_index + 1, l:other_text)
-				endif
-			else
-				" Passable match.
-				let l:other_text = getline(l:loc_list_fields_index + 1)
-				let l:other_text = substitute(l:other_text, '^\([-*]\) ', '\1?', '')
-				call setline(l:loc_list_fields_index + 1, l:other_text)
-			endif
-		endif
-
-		let l:loc_list_fields_index += 1
-	endwhile
-	:setlocal nomodified
-	:setlocal nomodifiable
-
 	return 1
 endfunction
 
 
 " This function assumes it's called from a location list associated
 " with a ledger being reconciled.
-function! ledger_x#_unset_posting_pending( cur_line, amount_int, account, match, from, to )
+function! ledger_x#_unset_posting_pending( cur_line, amount_int, account, match, from, to, loc_match )
 	let l:loc_rec = getloclist(0)[line(".") - 1]
 	let l:ledger_line = getbufline(l:loc_rec.bufnr, l:loc_rec.lnum)[0]
 
@@ -466,33 +499,6 @@ function! ledger_x#_unset_posting_pending( cur_line, amount_int, account, match,
 "		" There still are more pending actions. Only close the current fold.
 "		call feedkeys("\<CR>zC\<C-w>p")
 "	endif
-
-	" Unflag related postings in the location list.
-
-	:setlocal modifiable
-	let l:loc_list_fields_index = 0
-	let l:loc_list_fields_len = len(s:loc_list_fields)
-	while l:loc_list_fields_index < l:loc_list_fields_len
-		if s:loc_list_fields[l:loc_list_fields_index].amount == -a:amount_int
-			if s:loc_list_fields[l:loc_list_fields_index].account == a:account
-				if l:loc_list_fields_index != a:cur_line - 1
-					" Very good match.
-					let l:other_text = getline(l:loc_list_fields_index + 1)
-					let l:other_text = substitute(l:other_text, '^\([-*]\)[!?]', '\1 ', '')
-					call setline(l:loc_list_fields_index + 1, l:other_text)
-				endif
-			else
-				" Passable match.
-				let l:other_text = getline(l:loc_list_fields_index + 1)
-				let l:other_text = substitute(l:other_text, '^\([-*]\)[!?]', '\1 ', '')
-				call setline(l:loc_list_fields_index + 1, l:other_text)
-			endif
-		endif
-
-		let l:loc_list_fields_index += 1
-	endwhile
-	:setlocal nomodified
-	:setlocal nomodifiable
 
 	return 1
 endfunction
@@ -645,9 +651,10 @@ function! ledger_x#posting_rid_remove(buffer_number, line_number)
 		return [0, 'not a posting']
 	endif
 
+	let l:ledger_line = substitute(l:ledger_line, '^\(\s\+\)\*\(\s*\)', '\1 \2', '')
 	let l:ledger_line = substitute(l:ledger_line, '\s\+;\s*rID:.*$', '', '')
 	call setbufline(a:buffer_number, a:line_number, l:ledger_line)
-	
+
 	let l:next_line_number = a:line_number + 1
 	while (1)
 		let l:ledger_line_list = getbufline(a:buffer_number, l:next_line_number)
@@ -689,7 +696,7 @@ function! ledger_x#posting_remove_rid(buffer_number, line_number)
 
 	let l:ledger_line = substitute(l:ledger_line, '\s\+;\s*rID:.*$', '', '')
 	call setbufline(a:buffer_number, a:line_number, l:ledger_line)
-	
+
 	let l:next_line_number = a:line_number + 1
 	while (1)
 		let l:ledger_line_list = getbufline(a:buffer_number, l:next_line_number)
