@@ -40,6 +40,11 @@ reconciliation ID.  This can be used for tracing or charting cash flows or to
 verify the integrity of a ledger after changes have been made.  LxUnReconcile
 uses them to find matching postings.
 
+For example, this register report is grouped by reconciliation ID.  Any group
+with a nonzero balance is in error.
+
+    ledger -f my.ledger --group-by "tag('rID')" register
+
                                        *ledger_x-unreconciling* *LxUnReconcile* *lu*
 Unreconciling~
 
