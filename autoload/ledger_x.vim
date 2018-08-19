@@ -105,14 +105,16 @@ function! ledger_x#reconcile()
 
 	" Set key mappings for interactive reconcile.
 
-	nnoremap <buffer><nowait> <Space> :call ledger_x#toggle_qf_pending()<CR>
-	nnoremap <buffer><nowait> < :call ledger_x#quit_qf()<CR>
-	nnoremap <buffer><nowait> > :call ledger_x#commit_qf_pending()<CR>
-	nnoremap <buffer><nowait> g :call ledger_x#go_to_posting()<CR>
+	nnoremap <buffer><nowait><silent> <Space> :call ledger_x#toggle_qf_pending()<CR>
+	nnoremap <buffer><nowait><silent> < :call ledger_x#quit_qf()<CR>
+	nnoremap <buffer><nowait><silent> > :call ledger_x#commit_qf_pending()<CR>
+	nnoremap <buffer><nowait><silent> g :call ledger_x#go_to_posting()<CR>
 
 	setlocal filetype=ledger
 	setlocal syntax=ledger_x
 	setlocal foldmethod=manual
+
+	setlocal statusline=%!ledger_x#status_reconcile()
 
 	redraw
 
@@ -329,13 +331,6 @@ function! ledger_x#toggle_qf_pending()
 		return
 	endif
 
-	" Maintain a displayable version of the pending amount with the
-	" decimal point replaced.
-
-	let l:pending_wholes = string(s:pending_amount)[:-(s:pending_places+1)]
-	let l:pending_fracts = string(s:pending_amount)[-(s:pending_places):]
-	let l:pending_amount_str = l:pending_wholes . '.' . l:pending_fracts
-
 	" Update the location list reflect the current reconciliation state.
 
 	:setlocal modifiable
@@ -379,20 +374,26 @@ function! ledger_x#toggle_qf_pending()
 	" TODO: Only do this when s:pending_count is zero.
 	:setlocal nomodified
 	:setlocal nomodifiable
+endfunction
+
+
+function! ledger_x#status_reconcile()
+	" Displayable version with the decimal point replaced.
+	let l:pending_wholes = string(s:pending_amount)[:-(s:pending_places+1)]
+	let l:pending_fracts = string(s:pending_amount)[-(s:pending_places):]
+	let l:pending_amount_str = l:pending_wholes . '.' . l:pending_fracts
 
 	if s:pending_count == 0
 		if s:pending_amount != 0
-			echo 'Error: Nonzero pending amount with no pending actions: ' . l:pending_amount_str
-			return
+			return 'Error: Nonzero pending amount with no pending actions: ' . l:pending_amount_str
 		endif
-		echo 'All pending actions reverted.'
-	else
-		if s:pending_amount == 0
-			echo 'Pending actions balance. Press > to commit.'
-		else
-			echo 'Pending actions: ' . s:pending_count . '  Pending amount: ' . l:pending_amount_str
-		endif
+		return 'No pending actions. Press < to close.'
 	endif
+
+	if s:pending_amount == 0
+		return 'Pending actions balance. Press > to commit.'
+	endif
+	return 'Pending actions: ' . s:pending_count . '  Current balance: ' . l:pending_amount_str
 endfunction
 
 
@@ -586,12 +587,6 @@ function! ledger_x#commit_qf_pending()
 
 		let l:loc_index = l:loc_index + 1
 	endfor
-
-	if s:pending_count == 0
-		echo 'Pending actions committed. Press < to close the window.'
-	else
-		echo 'Error: Pending count after commit is not zero: ' . s:pending_count
-	endif
 
 	:setlocal nomodified
 	:setlocal nomodifiable
