@@ -353,7 +353,7 @@ function! ledger_x#toggle_qf_pending()
 	for l:loc_text in getline(1, '$')
 		if l:loc_text =~ '^[-*][?!]'
 			let l:loc_text = substitute(l:loc_text, '^\([-*]\)[?!]', '\1 ', '')
-			call setbufline(l:loc_line_index, l:loc_text)
+			call setline(l:loc_line_index + 1, l:loc_text)
 		endif
 		let l:loc_line_index += 1
 	endfor
@@ -418,13 +418,11 @@ function! ledger_x#_set_hints(loc_match, amount_int, account)
 					" Perfect match.
 					let l:other_text = getline(l:loc_list_fields_index + 1)
 					let l:other_text = substitute(l:other_text, a:loc_match, '\1!', '')
-					echo l:other_text
 					call setline(l:loc_list_fields_index + 1, l:other_text)
 				else
 					" Passable match.
 					let l:other_text = getline(l:loc_list_fields_index + 1)
 					let l:other_text = substitute(l:other_text, a:loc_match, '\1?', '')
-					echo l:other_text
 					call setline(l:loc_list_fields_index + 1, l:other_text)
 				endif
 			endif
