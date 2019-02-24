@@ -1077,11 +1077,12 @@ syntax match ledgerXTransactionNoteMetadataValue
 
 syntax cluster ledgerXTransactionDetailLines contains=ledgerXTransactionPostingLine,ledgerXTransactionNoteLine
 
-""" Synchronize syntax.
-" TODO: Figure this out.
+""" Synchronize syntax to speed it up.
 
 syntax sync clear
-syntax sync match ledgerXSyncTransaction grouphere ledgerXTransactionNormal /$/
+syntax sync fromstart
+syntax sync maxlines=300
+syntax sync match ledgerXSyncTransaction grouphere ledgerXTransactionNormal /^\d/
 
 """ Automated Transactions
 """ = EXPRESSION
