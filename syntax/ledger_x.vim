@@ -1002,19 +1002,19 @@ syntax match ledgerXTransactionPostingAccount
   \ skipwhite
 
 syntax match ledgerXTransactionPostingStatusCleared
-  \ /\(^\s\+\)\@<=\*/
+  \ /\*/
   \ contained
   \ nextgroup=ledgerXTransactionPostingAccount
   \ skipwhite
 
 syntax match ledgerXTransactionPostingStatusPending
-  \ /\(^\s\+\)\@<=!/
+  \ /!/
   \ contained
   \ nextgroup=ledgerXTransactionPostingAccount
   \ skipwhite
 
 syntax match ledgerXTransactionPostingStatusUncommitted
-  \ /\(^\s\+\)\@<=[-*]>/
+  \ /\([-+]\)\1/
   \ contained
   \ nextgroup=ledgerXTransactionPostingAccount
   \ skipwhite

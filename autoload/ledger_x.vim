@@ -308,22 +308,22 @@ function! ledger_x#toggle_qf_pending()
 	let l:left_two = strpart(l:loc_text, 0, 2)
 	if l:left_two =~ '-[!? ]'
 		let l:loc_text = '->' . strpart(l:loc_text, 2)
-		if ! ledger_x#_set_posting_pending( l:cur_line, l:line_amount_int, l:line_account, '^\s\s*[A-Z]', '^\s\s*', ' -> ', '^\(-\)[!? ]' )
+		if ! ledger_x#_set_posting_pending( l:cur_line, l:line_amount_int, l:line_account, '^\s\+[A-Z]', '^\s\+', ' ++ ', '^\(-\)[!? ]' )
 			return
 		endif
 	elseif l:left_two =~ '*[!? ]'
 		let l:loc_text = '*>' . strpart(l:loc_text, 2)
-		if ! ledger_x#_set_posting_pending( l:cur_line, l:line_amount_int, l:line_account, '^\s\s*[*]\s*[A-Z]', '^\s\s*[*]\s*', ' *> ', '^\(*\)[!? ]' )
+		if ! ledger_x#_set_posting_pending( l:cur_line, l:line_amount_int, l:line_account, '^\s\+[*]\s*[A-Z]', '^\s\+\*\s*', ' -- ', '^\(*\)[!? ]' )
 			return
 		endif
 	elseif l:left_two == '->'
 		let l:loc_text = '- ' . strpart(l:loc_text, 2)
-		if ! ledger_x#_unset_posting_pending( l:cur_line, l:line_amount_int, l:line_account, '^\s\s*->\s*[A-Z]', '^\s\s*->\s*', '    ', '->' )
+		if ! ledger_x#_unset_posting_pending( l:cur_line, l:line_amount_int, l:line_account, '^\s\+++\s*[A-Z]', '^\s\+++\s*', '    ', '->' )
 			return
 		endif
 	elseif l:left_two == '*>'
 		let l:loc_text = '* ' . strpart(l:loc_text, 2)
-		if ! ledger_x#_unset_posting_pending( l:cur_line, l:line_amount_int, l:line_account, '^\s\s*[*]>\s*[A-Z]', '^\s\s*[*]>\s*', '  * ', '*>' )
+		if ! ledger_x#_unset_posting_pending( l:cur_line, l:line_amount_int, l:line_account, '^\s\+--\s*[A-Z]', '^\s\+--\s*', '  * ', '*>' )
 			return
 		endif
 	else
@@ -435,6 +435,8 @@ endfunction
 " This function assumes it's called from a location list associated
 " with a ledger being reconciled.
 function! ledger_x#_set_posting_pending( cur_line, amount_int, account, match, from, to, loc_match )
+	" a:match is a regexp that the ledger line for the current location list line must match
+	" a:from and a:to are parameters for a substitute() called on the current ledger line
 	if s:pending_count > 0 && s:pending_amount == 0
 		echo 'Pending actions balance. Please commit before marking new ones.'
 		return 0
@@ -445,7 +447,7 @@ function! ledger_x#_set_posting_pending( cur_line, amount_int, account, match, f
 	let l:loc_rec = getloclist(0)[line(".") - 1]
 	let l:ledger_line = getbufline(l:loc_rec.bufnr, l:loc_rec.lnum)[0]
 
-	if a:to == ' -> '
+	if a:to == ' ++ '
 		if l:ledger_line =~ '\s\+;'
 			echo 'Ledger line must not have a comment.'
 			return 0
@@ -549,25 +551,25 @@ function! ledger_x#commit_qf_pending()
 		let l:ledger_line = getbufline(l:loc_rec.bufnr, l:loc_rec.lnum)[0]
 
 		if l:left_two == '->'
-			if ! l:ledger_line =~ '^\s\s*->\s*[A-Z]'
+			if ! l:ledger_line =~ '^\s\+++\s*[A-Z]'
 				echo 'Ledger line with pending reconcile is already reconciled: ' . l:ledger_line
 				let l:loc_index = l:loc_index + 1
 				continue
 			endif
 
-			let l:ledger_line = substitute(l:ledger_line, '^\s\s*->\s*', '  * ', '')
+			let l:ledger_line = substitute(l:ledger_line, '^\s\+++\s*', '  * ', '')
 			let l:ledger_line .= '  ; rID: ' . l:reconciliation_id
 
 			let l:loc_prefix = '* '
 			let s:pending_count = s:pending_count - 1
 		elseif l:left_two == '*>'
-			if ! l:ledger_line =~ '^\s\s*[*]>\s*'
+			if ! l:ledger_line =~ '^\s\+--\s*'
 				echo 'Ledger line with pending unreconcile is already unreconciled: ' . l:ledger_line
 				let l:loc_index = l:loc_index + 1
 				continue
 			endif
 
-			let l:ledger_line = substitute(l:ledger_line, '^\s\s*[*]>\s*', '    ', '')
+			let l:ledger_line = substitute(l:ledger_line, '^\s\+--\s*', '    ', '')
 			let l:ledger_line = substitute(l:ledger_line, '\s\+;\s*rID:.*', '', '')
 
 			let l:loc_prefix = '- '
