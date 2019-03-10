@@ -903,9 +903,10 @@ syntax match ledgerXYearLine
 """ DATE[=EFFECTIVE_DATE] [STATUS] [CODE] DESCRIPTION
 """   POSTING-OR-NOTELINE
 
+" XXX This is the slow one.
 syntax region ledgerXTransactionNormal
   \ start=/^\d/
-  \ skip=/^\s/
+  \ skip=/^\s.*$/
   \ end=/^/
   \ contains=ledgerXTransactionNormalSummaryLine
   \ fold
@@ -987,14 +988,15 @@ syntax region ledgerXTransactionPostingNote
   \ skipwhite
 
 " TODO: Parse amounts better. First, enumerate the formats.
+"  \ /\S.\{-\}\(\s*\(;\|$\)\)\@=/
 syntax match ledgerXTransactionPostingAmount
-  \ /\S.\{-\}\(\s*\(;\|$\)\)\@=/
+  \ /[^;[:space:]]\+\(\s*[^;[:space:]]\+\)*/
   \ contained
   \ nextgroup=ledgerXTransactionPostingNote
   \ skipwhite
 
 syntax match ledgerXTransactionPostingAccount
-  \ /\S.\{-\}\(\s\s\+\S\|\s*$\)\@=/
+  \ /\S\+\(\s\S\+\)*/
   \ contained
   \ nextgroup=ledgerXTransactionPostingAmount
   \ skipwhite
@@ -1017,6 +1019,7 @@ syntax match ledgerXTransactionPostingStatusUncommitted
   \ nextgroup=ledgerXTransactionPostingAccount
   \ skipwhite
 
+" XXX This is the slow one.
 syntax region ledgerXTransactionPostingLine
   \ start=/\(^\s\+\)\@<=[^;[:space:]]/
   \ end=/$/
@@ -1031,6 +1034,7 @@ syntax region ledgerXTransactionPostingLine
 " Note Line
 "   ; NOTE
 
+" XXX This is the slow one.
 syntax region ledgerXTransactionNoteLine
   \ start=/\(^\s\+\)\@<=;/
   \ end=/$/
