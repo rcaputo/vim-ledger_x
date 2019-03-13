@@ -37,7 +37,7 @@ syntax match ledgerXAccountRegionAliasKeyword
   \ skipwhite
 
 syntax match ledgerXAccountRegionAliasAlias
-  \ /\S.\{-\}\ze\s*$/
+  \ /\S.\{-}\ze\s*$/
   \ contained
   \ nextgroup=@ledgerXAccountRegionKeywords
   \ skipnl
@@ -53,7 +53,7 @@ syntax match ledgerXAccountRegionAssertKeyword
   \ skipwhite
 
 syntax match ledgerXAccountRegionAssertExpression
-  \ /\S.\{-\}\ze\s*$/
+  \ /\S.\{-}\ze\s*$/
   \ contained
   \ nextgroup=@ledgerXAccountRegionKeywords
   \ skipnl
@@ -69,7 +69,7 @@ syntax match ledgerXAccountRegionCheckKeyword
   \ skipwhite
 
 syntax match ledgerXAccountRegionCheckExpression
-  \ /\S.\{-\}\ze\s*$/
+  \ /\S.\{-}\ze\s*$/
   \ contained
   \ nextgroup=@ledgerXAccountRegionKeywords
   \ skipnl
@@ -94,7 +94,7 @@ syntax match ledgerXAccountRegionEvalKeyword
   \ skipwhite
 
 syntax match ledgerXAccountRegionEvalExpression
-  \ /\S.\{-\}\ze\s*$/
+  \ /\S.\{-}\ze\s*$/
   \ contained
   \ nextgroup=@ledgerXAccountRegionKeywords
   \ skipnl
@@ -109,7 +109,7 @@ syntax match ledgerXAccountRegionNoteKeyword
   \ skipwhite
 
 syntax match ledgerXAccountRegionNoteNote
-  \ /\S.\{-\}\ze\s*$/
+  \ /\S.\{-}\ze\s*$/
   \ contained
   \ nextgroup=@ledgerXAccountRegionKeywords
   \ skipnl
@@ -125,7 +125,7 @@ syntax match ledgerXAccountRegionPayeeKeyword
   \ skipwhite
 
 syntax match ledgerXAccountRegionPayeeRegexp
-  \ /\S.\{-\}\ze\s*$/
+  \ /\S.\{-}\ze\s*$/
   \ contained
   \ nextgroup=@ledgerXAccountRegionKeywords
   \ skipnl
@@ -134,7 +134,7 @@ syntax match ledgerXAccountRegionPayeeRegexp
 " account ACCOUNT
 
 syntax match ledgerXAccountRegionAccount
-  \ /\S.\{-\}\ze\s*$/
+  \ /\S.\{-}\ze\s*$/
   \ contained
   \ nextgroup=@ledgerXAccountRegionKeywords
   \ skipnl
@@ -178,7 +178,7 @@ syntax match ledgerXAliasLineOperator
   \ skipwhite
 
 syntax match ledgerXAliasLineAccount
-  \ /[A-Za-z].\{-\}\ze\s*$/
+  \ /[A-Za-z].\{-}\ze\s*$/
   \ contained
 
 syntax match ledgerXAliasLine
@@ -198,7 +198,7 @@ syntax match ledgerXApplyAccountLineKeyword
   \ skipwhite
 
 syntax match ledgerXApplyAccountLineAccount
-  \ /\S.\{-\}\ze\s*$/
+  \ /\S.\{-}\ze\s*$/
   \ contained
 
 syntax match ledgerXApplyAccountLine
@@ -230,7 +230,7 @@ syntax match ledgerXApplyTagLineKeyword
   \ skipwhite
 
 syntax match ledgerXApplyTagLineTag
-  \ /\S.\{-\}\ze\s*$/
+  \ /\S.\{-}\ze\s*$/
   \ contained
 
 syntax match ledgerXApplyTagLine
@@ -258,7 +258,7 @@ syntax match ledgerXAssertLineKeyword
   \ skipwhite
 
 syntax match ledgerXAssertLineExpression
-  \ /\S.\{-\}\ze\s*$/
+  \ /\S.\{-}\ze\s*$/
   \ contained
 
 syntax match ledgerXAssertLine
@@ -271,17 +271,27 @@ syntax match ledgerXAssertLine
 """ "A" is a synonym for "bucket".
 
 syntax match ledgerXBucketLineKeyword
-  \ /^\%(A\|bucket\)\>/
+  \ /^A\>/
+  \ contained
+  \ nextgroup=ledgerXBucketLineAccount
+  \ skipwhite
+
+syntax match ledgerXBucketLineKeyword
+  \ /^bucket\>/
   \ contained
   \ nextgroup=ledgerXBucketLineAccount
   \ skipwhite
 
 syntax match ledgerXBucketLineAccount
-  \ /[A-Za-z].\{-\}\ze\s*$/
+  \ /[A-Za-z].\{-}\ze\s*$/
   \ contained
 
 syntax match ledgerXBucketLine
-  \ /^\%(A\|bucket\).*$/
+  \ /^A\>.*$/
+  \ contains=ledgerXBucketLineKeyword
+
+syntax match ledgerXBucketLine
+  \ /^bucket\>.*$/
   \ contains=ledgerXBucketLineKeyword
 
 """ b SECONDS
@@ -352,13 +362,13 @@ syntax match ledgerXCaptureLineKeyword
   \ skipwhite
 
 syntax match ledgerXCaptureLineAccount
-  \ /\S.\{-\}\ze\s\{2,\}/
+  \ /\S.\{-}\ze\s\{2,}/
   \ contained
   \ nextgroup=ledgerXCaptureLineRegexp
   \ skipwhite
 
 syntax match ledgerXCaptureLineRegexp
-  \ /\S.\{-\}\ze\s*$/
+  \ /\S.\{-}\ze\s*$/
   \ contained
 
 syntax match ledgerXCaptureLine
@@ -374,7 +384,7 @@ syntax match ledgerXCheckLineKeyword
   \ skipwhite
 
 syntax match ledgerXCheckLineExpression
-  \ /\S.\{-\}\ze\s*$/
+  \ /\S.\{-}\ze\s*$/
   \ contained
 
 syntax match ledgerXCheckLine
@@ -415,7 +425,7 @@ syntax match ledgerXCommodityRegionFormatKeyword
   \ skipwhite
 
 syntax match ledgerXCommodityRegionFormatFormat
-  \ /\S.\{-\}\ze\s*$/
+  \ /\S.\{-}\ze\s*$/
   \ contained
   \ nextgroup=@ledgerXCommodityRegionKeywords
   \ skipnl
@@ -439,7 +449,7 @@ syntax match ledgerXCommodityRegionNoteKeyword
   \ skipwhite
 
 syntax match ledgerXCommodityRegionNoteNote
-  \ /\S.\{-\}\ze\s*$/
+  \ /\S.\{-}\ze\s*$/
   \ contained
   \ nextgroup=@ledgerXCommodityRegionKeywords
   \ skipnl
@@ -448,7 +458,7 @@ syntax match ledgerXCommodityRegionNoteNote
 " commodity COMMODITY
 
 syntax match ledgerXCommodityRegionCommodity
-  \ /\S.\{-\}\ze\s*$/
+  \ /\S.\{-}\ze\s*$/
   \ contained
   \ nextgroup=@ledgerXCommodityRegionKeywords
   \ skipnl
@@ -480,7 +490,7 @@ syntax match ledgerXDefaultLineKeyword
   \ skipwhite
 
 syntax match ledgerXDefaultLineAmount
-  \ /\S.\{-\}\ze\s*$/
+  \ /\S.\{-}\ze\s*$/
   \ contained
 
 syntax match ledgerXDefaultLine
@@ -508,7 +518,7 @@ syntax match ledgerXDefineLineOperator
   \ skipwhite
 
 syntax match ledgerXDefineLineExpression
-  \ /\S.\{-\}\ze\s*$/
+  \ /\S.\{-}\ze\s*$/
   \ contained
 
 syntax match ledgerXDefineLine
@@ -528,13 +538,13 @@ syntax match ledgerXFixedLineKeyword
   \ skipwhite
 
 syntax match ledgerXFixedLineSymbol
-  \ /\S.\{-\}\ze\s/
+  \ /\S.\{-}\ze\s/
   \ contained
   \ nextgroup=ledgerXFixedLineAmount
   \ skipwhite
 
 syntax match ledgerXFixedLineAmount
-  \ /\S.\{-\}\ze\s*$/
+  \ /\S.\{-}\ze\s*$/
   \ contained
 
 syntax match ledgerXFixedLine
@@ -597,7 +607,7 @@ syntax match ledgerXClockInUnclearedLineTime
   \ skipwhite
 
 syntax match ledgerXClockInUnclearedLineDescription
-  \ /\S.\{-\}\ze\s*$/
+  \ /\S.\{-}\ze\s*$/
   \ contained
 
 syntax match ledgerXClockInUnclearedLine
@@ -625,7 +635,7 @@ syntax match ledgerXClockInClearedLineTime
   \ skipwhite
 
 syntax match ledgerXClockInClearedLineDescription
-  \ /\S.\{-\}\ze\s*$/
+  \ /\S.\{-}\ze\s*$/
   \ contained
 
 syntax match ledgerXClockInClearedLine
@@ -641,7 +651,7 @@ syntax match ledgerXIncludeLineKeyword
   \ skipwhite
 
 syntax match ledgerXIncludeLineFilename
-  \ /\S.\{-\}\ze\s*$/
+  \ /\S.\{-}\ze\s*$/
   \ contained
 
 syntax match ledgerXIncludeLine
@@ -685,7 +695,7 @@ syntax match ledgerXClockOutUnclearedLineTime
   \ skipwhite
 
 syntax match ledgerXClockOutUnclearedLineDescription
-  \ /\S.\{-\}\ze\s*$/
+  \ /\S.\{-}\ze\s*$/
   \ contained
 
 syntax match ledgerXClockOutUnclearedLine
@@ -713,7 +723,7 @@ syntax match ledgerXClockOutClearedLineTime
   \ skipwhite
 
 syntax match ledgerXClockOutClearedLineDescription
-  \ /\S.\{-\}\ze\s*$/
+  \ /\S.\{-}\ze\s*$/
   \ contained
 
 syntax match ledgerXClockOutClearedLine
@@ -741,7 +751,7 @@ syntax match ledgerXPriceLineCommodity
   \ skipwhite
 
 syntax match ledgerXPriceLinePrice
-  \ /\S.\{-\}\ze\s*$/
+  \ /\S.\{-}\ze\s*$/
   \ contained
 
 syntax match ledgerXPriceLine
@@ -762,7 +772,7 @@ syntax match ledgerXPayeeRegionAliasKeyword
   \ skipwhite
 
 syntax match ledgerXPayeeRegionAliasAlias
-  \ /\S.\{-\}\ze\s*$/
+  \ /\S.\{-}\ze\s*$/
   \ contained
   \ nextgroup=@ledgerXPayeeRegionKeywords
   \ skipnl
@@ -778,7 +788,7 @@ syntax match ledgerXPayeeRegionUuidKeyword
   \ skipwhite
 
 syntax match ledgerXPayeeRegionUuidUuid
-  \ /\S.\{-\}\ze\s*$/
+  \ /\S.\{-}\ze\s*$/
   \ contained
   \ nextgroup=@ledgerXPayeeRegionKeywords
   \ skipnl
@@ -787,7 +797,7 @@ syntax match ledgerXPayeeRegionUuidUuid
 " payee PAYEE
 
 syntax match ledgerXPayeeRegionPayee
-  \ /\S.\{-\}\ze\s*$/
+  \ /\S.\{-}\ze\s*$/
   \ contained
   \ nextgroup=@ledgerXPayeeRegionKeywords
   \ skipnl
@@ -824,7 +834,7 @@ syntax match ledgerXTagRegionAssertKeyword
   \ skipwhite
 
 syntax match ledgerXTagRegionAssertExpression
-  \ /\S.\{-\}\ze\s*$/
+  \ /\S.\{-}\ze\s*$/
   \ contained
   \ nextgroup=@ledgerXTagRegionKeywords
   \ skipnl
@@ -840,7 +850,7 @@ syntax match ledgerXTagRegionCheckKeyword
   \ skipwhite
 
 syntax match ledgerXTagRegionCheckExpression
-  \ /\S.\{-\}\ze\s*$/
+  \ /\S.\{-}\ze\s*$/
   \ contained
   \ nextgroup=@ledgerXTagRegionKeywords
   \ skipnl
@@ -849,7 +859,7 @@ syntax match ledgerXTagRegionCheckExpression
 " tag TAG
 
 syntax match ledgerXTagRegionTag
-  \ /\S.\{-\}\ze\s*$/
+  \ /\S.\{-}\ze\s*$/
   \ contained
   \ nextgroup=@ledgerXTagRegionKeywords
   \ skipnl
@@ -886,7 +896,13 @@ syntax region ledgerXMultiLineTest
 """ year YEAR
 
 syntax match ledgerXYearLineKeyword
-  \ /^\%(Y\|year\)\>/
+  \ /^Y\>/
+  \ contained
+  \ nextgroup=ledgerXYearLineYear
+  \ skipwhite
+
+syntax match ledgerXYearLineKeyword
+  \ /^year\>/
   \ contained
   \ nextgroup=ledgerXYearLineYear
   \ skipwhite
@@ -896,7 +912,11 @@ syntax match ledgerXYearLineYear
   \ contained
 
 syntax match ledgerXYearLine
-  \ /^\%(Y\|year\).*$/
+  \ /^Y\>.*$/
+  \ contains=ledgerXYearLineKeyword
+
+syntax match ledgerXYearLine
+  \ /^year\>.*$/
   \ contains=ledgerXYearLineKeyword
 
 """ Normal Transactions
@@ -905,9 +925,9 @@ syntax match ledgerXYearLine
 
 syntax region ledgerXTransactionNormal
   \ start=/^\d/
-  \ skip=/^\s\+\S/
+  \ skip=/^\s/
   \ end=/^/
-  \ contains=ledgerXTransactionNormalSummaryLine
+  \ contains=ledgerXTransactionDetailLines,ledgerXTransactionNormalSummaryLine
   \ fold
   \ keepend
   \ transparent
@@ -926,7 +946,7 @@ syntax region ledgerXTransactionNormalSummaryLine
 
 syntax match ledgerXTransactionSummaryDescription
   \ contained
-  \ /[^=*!([:space:]].\{-\}\ze\s*$/
+  \ /[^=*!([:space:]].\{-}\ze\s*$/
 
 syntax match ledgerXTransactionSummaryCodeCloser
   \ /)/
@@ -987,15 +1007,16 @@ syntax region ledgerXTransactionPostingNote
   \ skipwhite
 
 " TODO: Parse amounts better. First, enumerate the formats.
-"  \ /\S.\{-\}\%(\s*\%(;\|$\)\)\@=/
-syntax match ledgerXTransactionPostingAmount
-  \ /[^;[:space:]]\+\%(\s*[^;[:space:]]\+\)*/
+syntax region ledgerXTransactionPostingAmount
+  \ start=/[^;[:space:]]/
+  \ end=/\ze\s*\%(;\|$\)/
   \ contained
   \ nextgroup=ledgerXTransactionPostingNote
   \ skipwhite
 
-syntax match ledgerXTransactionPostingAccount
-  \ /\S\+\%(\s\S\+\)*/
+syntax region ledgerXTransactionPostingAccount
+  \ start=/\S/
+  \ end=/\ze\%(\s\s\|$\)/
   \ contained
   \ nextgroup=ledgerXTransactionPostingAmount
   \ skipwhite
@@ -1013,12 +1034,17 @@ syntax match ledgerXTransactionPostingStatusPending
   \ skipwhite
 
 syntax match ledgerXTransactionPostingStatusUncommitted
-  \ /\%(--\|++\)/
+  \ /--/
   \ contained
   \ nextgroup=ledgerXTransactionPostingAccount
   \ skipwhite
 
-" XXX This is the slow one.
+syntax match ledgerXTransactionPostingStatusUncommitted
+  \ /++/
+  \ contained
+  \ nextgroup=ledgerXTransactionPostingAccount
+  \ skipwhite
+
 syntax region ledgerXTransactionPostingLine
   \ start=/^\s\+[^;[:space:]]/
   \ end=/$/
@@ -1074,7 +1100,7 @@ syntax match ledgerXTransactionNoteMetadataSeparator
   \ skipwhite
 
 syntax match ledgerXTransactionNoteMetadataValue
-  \ /\S.\{-\}\ze\s*$/
+  \ /\S.\{-}\ze\s*$/
   \ contained
 
 syntax cluster ledgerXTransactionDetailLines contains=ledgerXTransactionPostingLine,ledgerXTransactionNoteLine
@@ -1082,7 +1108,6 @@ syntax cluster ledgerXTransactionDetailLines contains=ledgerXTransactionPostingL
 """ Synchronize syntax to speed it up.
 
 syntax sync clear
-syntax sync fromstart
 syntax sync maxlines=300
 syntax sync match ledgerXSyncTransaction grouphere ledgerXTransactionNormal /^\d/
 
@@ -1116,7 +1141,7 @@ syntax match ledgerXTransactionAutomatedSummaryOperator
   \ skipwhite
 
 syntax match ledgerXTransactionAutomatedSummaryExpression
-  \ /\S.\{-\}\ze\s*$/
+  \ /\S.\{-}\ze\s*$/
   \ contained
 
 """ Periodic Transactions
@@ -1149,7 +1174,7 @@ syntax match ledgerXTransactionPeriodicSummaryOperator
   \ skipwhite
 
 syntax match ledgerXTransactionPeriodicSummaryExpression
-  \ /\S.\{-\}\ze\s*$/
+  \ /\S.\{-}\ze\s*$/
   \ contained
 
 """ Highlights For Kids!
