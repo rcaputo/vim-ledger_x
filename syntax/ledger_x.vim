@@ -1050,6 +1050,7 @@ syntax region ledgerXTransactionPostingLine
   \ end=/$/
   \ contained
   \ contains=ledgerXTransactionPostingStatusCleared,ledgerXTransactionPostingStatusPending,ledgerXTransactionPostingStatusUncommitted,ledgerXTransactionPostingAccount
+  \ display
   \ keepend
   \ nextgroup=@ledgerXTransactionDetailLines
   \ skipnl
@@ -1064,6 +1065,7 @@ syntax region ledgerXTransactionNoteLine
   \ end=/$/
   \ contained
   \ contains=@ledgerXTransactionNoteDetails
+  \ display
   \ keepend
   \ nextgroup=@ledgerXTransactionDetailLines
   \ skipnl
