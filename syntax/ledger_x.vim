@@ -927,7 +927,7 @@ syntax region ledgerXTransactionNormal
   \ start=/^\d/
   \ skip=/^\s/
   \ end=/^/
-  \ contains=ledgerXTransactionDetailLines,ledgerXTransactionNormalSummaryLine
+  \ contains=@ledgerXTransactionDetailLines,ledgerXTransactionNormalSummaryLine
   \ fold
   \ keepend
   \ transparent
