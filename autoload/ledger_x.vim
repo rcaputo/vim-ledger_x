@@ -768,6 +768,6 @@ function! ledger_x#quit_qf()
 	wincmd c
 
 	" Remove markers.
-	execute '%s/^\(\s\+\)[*-]>/\1  /'
+	execute '%s/^\(\s\+\)\(++\|--\)/\1  /'
 	echo 'Pending actions have been undone.'
 endfunction
