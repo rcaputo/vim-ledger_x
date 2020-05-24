@@ -114,6 +114,8 @@ function! ledger_x#reconcile()
 	setlocal syntax=ledger_x
 	setlocal foldmethod=manual
 
+	" Disable other statusline plugin.
+	let b:airline_disable_statusline = 1
 	setlocal statusline=%!ledger_x#status_reconcile()
 
 	redraw
