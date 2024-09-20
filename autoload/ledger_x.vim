@@ -8,6 +8,7 @@ let s:last_reconciliation_seq = 0
 ":source mysyntax.vim
 
 let g:ledger_align_at = 65
+let g:ledger_x_qf_reconcile_format = '%15(amount) | %(date) %-4(code) %-50(payee) %-(account)\n'
 
 " A helper function to shell-escape a variable number of command line
 " parameters.
@@ -45,7 +46,7 @@ function! ledger_x#temporary_make(error_format, ...)
 	try
 		let &makeprg = call('s:shellescape', a:000)
 		let &errorformat = a:error_format
-		:silent lmake!
+		lmake!
 	catch
 		" Whatever.
 	endtry
@@ -83,9 +84,9 @@ function! ledger_x#reconcile()
 			\ g:ledger_bin, 'register',
 			\ '-f', expand('%'),
 			\ '--uncleared',
-			\ "--format=%(pending ? \"+\" : \"-\") " . g:ledger_qf_reconcile_format,
+			\ "--format=%(pending ? \"+\" : \"-\") " . g:ledger_x_qf_reconcile_format,
 			\ "--prepend-format=%(filename):%(beg_line): ",
-			\ "--sort=date,amount,payee",
+			\ "--sort=date,beg_line,amount,account",
 			\ l:account
 			\ ]
 
@@ -179,9 +180,9 @@ function! ledger_x#unreconcile()
 				\ g:ledger_bin, 'register',
 				\ '-f', expand('%'),
 				\ '--cleared',
-				\ "--format=%(pending ? \"+\" : \"*\") " . g:ledger_qf_reconcile_format,
+				\ "--format=%(pending ? \"+\" : \"*\") " . g:ledger_x_qf_reconcile_format,
 				\ "--prepend-format=%(filename):%(beg_line): ",
-				\ "--sort=date,amount,payee",
+				\ "--sort=date,beg_line,amount,payee,account",
 				\ "-l", "tag(\"rID\") == \"" . l:reconcile_id . "\""
 				\ ]
 
@@ -276,7 +277,7 @@ augroup ReconcileQuickfix
 	" file and line information at the beginning of each line.
 	autocmd BufReadPost quickfix
 				\   setlocal modifiable
-				\ | silent exe '%s/^[^|]*|[^|]*| //'
+				\ | exe '%s/^[^|]*|[^|]*| //'
 				\ | setlocal nomodifiable
 augroup END
 
@@ -407,7 +408,11 @@ function! ledger_x#go_to_posting()
 	catch
 		" Empty catch needed.
 	endtry
-	wincmd p
+	try
+		wincmd p
+	catch
+		" Empty catch needed.
+	endtry
 endfunction
 
 " This function assumes it's called from a location list associated
@@ -654,6 +659,7 @@ function! ledger_x#posting_rid_remove(buffer_number, line_number)
 
 	let l:next_line_number = a:line_number + 1
 	while (1)
+		echo l:next_line_number
 		let l:ledger_line_list = getbufline(a:buffer_number, l:next_line_number)
 
 		" End of file.

@@ -1,11 +1,12 @@
 *ledger_x.txt	eXtensions to the official Plugin for the ledger filetype.
 
-  Reconciling....|ledger_x-reconciling| 
+  Reconciling....|ledger_x-reconciling|
   Unreconciling..|ledger_x-unreconciling|
-  Syntax.........|ledger_x-syntaax| 
-  Installing.....|ledger_x-installing| 
-  Contributing...|ledger_x-contributing| 
-  License........|ledger_x-license| 
+  Syntax.........|ledger_x-syntaax|
+  Installing.....|ledger_x-installing|
+  Caveats........|ledger_x-caveats|
+  Contributing...|ledger_x-contributing|
+  License........|ledger_x-license|
 
 ==============================================================================
                                            *ledger_x-reconciling* *LxReconcile* *lr*
@@ -73,7 +74,14 @@ corresponding directories in your vim 'runtimepath'.  Pathogen, Vundle, etc.
 may make this easier to manage.
 
 ==============================================================================
-                                                  *showhidefoldsby-contributing*
+                                                              *ledger_x-caveats*
+Caveats~
+
+Reconciling and unreconciling may not match postings correctly with some
+currency and unit conventions.  See gitlab issue 3.
+
+==============================================================================
+                                                         *ledger_x-contributing*
 Contributing~
 
 Please use github as the point of contact for support and collaboration:

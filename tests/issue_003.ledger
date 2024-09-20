@@ -1,0 +1,39 @@
+# let g:ledger_x_qf_reconcile_format = '%(date) %-4(code) %-50(payee) %-30(account) %15(amount)\n'
+
+2020/01/01
+    A    $10.00
+    B
+
+2020/02/01
+    A    $-10.00
+    B
+
+
+# let g:ledger_x_qf_reconcile_format = '%15(amount) %(date) %-4(code) %-50(payee) %-30(account)\n'
+
+2020/01/01
+    A    10.00 USD
+    B
+
+2020/02/01
+    A    -10.00 USD
+    B
+
+
+# let g:ledger_x_qf_reconcile_format = '|%15(amount) %(date) %-4(code) %-50(payee) %-30(account)\n'
+
+2020/01/01
+    A    "BRK.B" 10
+    B
+
+2020/02/01
+    A    "BRK.B" -10
+    B
+
+2020/01/01
+    A    "0050.TW" 10
+    B
+
+2020/02/01
+    A    "0050.TW" -10
+    B

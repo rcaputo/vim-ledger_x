@@ -18,7 +18,7 @@ Ledger-X is installed the usual way.  Either copy the individual files
 to corresponding locations in your ~/.vim/ directory, or use Pathogen
 or something.
 
-Ledger-X is Copyright 2017-2018 by Rocco Caputo.
+Ledger-X is Copyright 2017-2024 by Rocco Caputo.
 
 Ledger-X is currently provided under
 Attribution-NonCommercial-ShareAlike 4.0 International
